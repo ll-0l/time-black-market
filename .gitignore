@@ -1,0 +1,59 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ==============================
+# Virtual Environment
+# ==============================
+venv/
+.venv/
+
+# ==============================
+# Environment Variables
+# ==============================
+.env
+.env.*
+
+# Keep environment template
+!.env.example
+
+# ==============================
+# Firebase / Service Account
+# ==============================
+firebase-service-account.json
+serviceAccountKey.json
+*service-account*.json
+*firebase-adminsdk*.json
+
+# ==============================
+# IDE
+# ==============================
+.vscode/
+.idea/
+
+# ==============================
+# OS
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Logs / Cache
+# ==============================
+*.log
+.pytest_cache/
+.mypy_cache/
+
+# ==============================
+# Frontend
+# ==============================
+node_modules/
+
+# ==============================
+# Deployment
+# ==============================
+.vercel/
