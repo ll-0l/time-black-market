@@ -12,7 +12,7 @@ import logging
 import os
 from typing import Any, Optional
 
-from openai import APIError, OpenAI, RateLimitError
+from openai import APIError, AuthenticationError, OpenAI, RateLimitError
 
 from backend.core.config import today
 from backend.core.exceptions import ExternalServiceError
@@ -28,18 +28,26 @@ MAX_TOOL_ROUNDS = 3
 
 
 def _model() -> str:
-    return os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    return os.getenv("OPENAI_MODEL", "gpt-5-mini")
 
 
 def _max_tokens() -> int:
-    return int(os.getenv("OPENAI_MAX_TOKENS", "600"))
+    # gpt-5 계열(추론 모델)은 내부 추론 토큰도 이 한도에 포함되므로 넉넉히 둔다.
+    return int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
+
+
+def _reasoning_effort() -> Optional[str]:
+    """추론 모델의 생각 강도(minimal/low/medium/high). 비우면 보내지 않음."""
+    return os.getenv("OPENAI_REASONING_EFFORT", "low").strip() or None
 
 
 def _client() -> OpenAI:
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    if not api_key.startswith("sk-"):
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
         raise ExternalServiceError("OPENAI_API_KEY가 설정되지 않았습니다.")
-    return OpenAI(api_key=api_key, timeout=30, max_retries=1)
+    # OPENAI_BASE_URL: OpenAI 호환 게이트웨이(예: Codyssey 공개 API) 사용 시 지정. 비우면 OpenAI 공식 API.
+    base_url = os.getenv("OPENAI_BASE_URL", "").strip() or None
+    return OpenAI(api_key=api_key, base_url=base_url, timeout=60, max_retries=1)
 
 
 def _fmt(value: Optional[float]) -> str:
@@ -95,6 +103,9 @@ def _history_messages(conversation: Optional[dict[str, Any]]) -> list[dict[str, 
 
 
 def _call_gpt(client: OpenAI, messages: list[dict[str, Any]]):
+    options: dict[str, Any] = {}
+    if _reasoning_effort() and _model().startswith(("gpt-5", "o")):
+        options["reasoning_effort"] = _reasoning_effort()
     try:
         return client.chat.completions.create(
             model=_model(),
@@ -102,10 +113,14 @@ def _call_gpt(client: OpenAI, messages: list[dict[str, Any]]):
             tools=TOOL_SCHEMAS,
             tool_choice="auto",
             max_completion_tokens=_max_tokens(),
+            **options,
         )
     except RateLimitError as exc:
         logger.warning("OpenAI rate limit: %s", exc)
         raise ExternalServiceError("AI 요청 한도를 초과했습니다. 잠시 후 다시 시도하세요.") from exc
+    except AuthenticationError as exc:
+        logger.warning("OpenAI auth error: %s", exc)
+        raise ExternalServiceError("AI API 키가 올바르지 않습니다. OPENAI_API_KEY / OPENAI_BASE_URL을 확인하세요.") from exc
     except APIError as exc:
         logger.exception("OpenAI error: %s", exc)
         raise ExternalServiceError("AI 응답을 받지 못했습니다. 잠시 후 다시 시도하세요.") from exc
