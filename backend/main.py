@@ -3,10 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import get_allowed_origins
 from backend.core.exceptions import register_exception_handlers
+from backend.routers.chat import router as chat_router
+from backend.routers.conversations import router as conversations_router
 from backend.routers.data import router as data_router
 
 
-APP_VERSION = "0.3.0"
+APP_VERSION = "0.4.0"
 
 app = FastAPI(
     title="Time Black Market API",
@@ -29,6 +31,8 @@ app.add_middleware(
 register_exception_handlers(app)
 
 app.include_router(data_router)
+app.include_router(conversations_router)
+app.include_router(chat_router)
 
 
 @app.get("/", tags=["System"])
