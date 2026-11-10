@@ -23,6 +23,11 @@ def get_allowed_origins() -> list[str]:
     return origins or DEFAULT_ORIGINS
 
 
+def get_allowed_origin_regex() -> str | None:
+    """배포 미리보기 주소처럼 바뀌는 도메인을 정규식으로 허용 (예: https://time-black-market-*.vercel.app)."""
+    return os.getenv("ALLOWED_ORIGIN_REGEX", "").strip() or None
+
+
 def today() -> dt.date:
     """서버 위치(Render는 UTC)와 무관하게 서비스 기준 시간대의 오늘 날짜."""
     return dt.datetime.now(APP_TIMEZONE).date()

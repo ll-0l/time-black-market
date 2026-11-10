@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.core.config import get_allowed_origins
+from backend.core.config import get_allowed_origin_regex, get_allowed_origins
 from backend.core.exceptions import register_exception_handlers
 from backend.routers.chat import router as chat_router
 from backend.routers.conversations import router as conversations_router
@@ -24,6 +24,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_allowed_origins(),
+    allow_origin_regex=get_allowed_origin_regex(),
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

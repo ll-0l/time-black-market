@@ -2,7 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node scripts/generate-config.mjs",
   "outputDirectory": ".",
-  "installCommand": "",
   "headers": [
     {
       "source": "/config.js",

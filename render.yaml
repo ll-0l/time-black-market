@@ -1,0 +1,36 @@
+# Render Blueprint — 백엔드(FastAPI) 배포 설정
+# Render 대시보드 → New → Blueprint → 이 저장소 선택 → 아래 sync:false 값만 입력하면 배포된다.
+services:
+  - type: web
+    name: time-black-market-api
+    runtime: python
+    plan: free
+    region: singapore            # 한국에서 가장 가까운 리전
+    branch: main
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: APP_TIMEZONE
+        value: Asia/Seoul
+      - key: OPENAI_BASE_URL
+        value: https://copa.codyssey.kr/v1
+      - key: OPENAI_MODEL
+        value: gpt-5-mini
+      - key: OPENAI_MAX_TOKENS
+        value: "2000"
+      - key: CHAT_RATE_LIMIT_PER_MINUTE
+        value: "10"
+      # Vercel 배포 도메인 미리보기 주소(*.vercel.app)까지 허용
+      - key: ALLOWED_ORIGIN_REGEX
+        value: https://time-black-market[a-z0-9-]*\.vercel\.app
+      # ↓ 비밀 값: 대시보드에서 직접 입력 (저장소에 올라가지 않음)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
