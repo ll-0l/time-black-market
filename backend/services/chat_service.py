@@ -39,7 +39,7 @@ def _tasks_block(open_tasks: Optional[list[dict[str, Any]]]) -> str:
         return "- 남은 업무 없음"
     lines = [f"  - {t['title']}: 예상 {_fmt(t['estimated_minutes'])}" for t in open_tasks[:15]]
     total = sum(t["estimated_minutes"] for t in open_tasks)
-    return f"- 남은 업무 {len(open_tasks)}개, 합계 {_fmt(total)} (= 오늘의 시간 부채)\n" + "\n".join(lines)
+    return f"- 남은 업무 {len(open_tasks)}개, 합계 {_fmt(total)} (= 오늘 달아둔 외상)\n" + "\n".join(lines)
 
 
 def build_system_prompt(summary: dict[str, Any], open_tasks: Optional[list[dict[str, Any]]] = None) -> str:
@@ -55,12 +55,12 @@ def build_system_prompt(summary: dict[str, Any], open_tasks: Optional[list[dict[
         )
         data_block = f"""- 데이터 기간: {summary['period']['label']} ({summary['period']['days']}일)
 - 총 레코드: {summary['count']}개
-- 주요 지표: 현재 부채 {_fmt(m['current'])} ({m['current_date']}), 평균 {_fmt(m['average'])}, 중앙값 {_fmt(m['median'])}, 최대 {_fmt(m['max'])} ({m['max_date']}), 최소 {_fmt(m['min'])} ({m['min_date']})
-- 누적 차입 {_fmt(m['total_borrowed'])} ({m['borrow_days']}일) / 누적 상환 {_fmt(m['total_repaid'])} ({m['repay_days']}일)
+- 주요 지표: 지금 외상 {_fmt(m['current'])} ({m['current_date']}), 평균 {_fmt(m['average'])}, 중앙값 {_fmt(m['median'])}, 최대 {_fmt(m['max'])} ({m['max_date']}), 최소 {_fmt(m['min'])} ({m['min_date']})
+- 누적 외상 단 시간 {_fmt(m['total_borrowed'])} ({m['borrow_days']}일) / 누적 갚은 시간 {_fmt(m['total_repaid'])} ({m['repay_days']}일)
 - 최근 트렌드: {summary['trend']['description']}
-- 추천 상환일: {rec.get('weekday')}요일 (다음 추천일 {', '.join(rec.get('next_dates') or [])}) — {rec.get('reason')}
-- 완납 예상: {payoff.get('status')} {payoff.get('description', '')}
-- 시간 신용등급: {credit['grade']} ({credit['label']})
+- 갚기 좋은 날: {rec.get('weekday')}요일 (다음 날짜 {', '.join(rec.get('next_dates') or [])}) — {rec.get('reason')}
+- 다 갚는 날 예측: {payoff.get('status')} {payoff.get('description', '')}
+- 손님 등급: {credit['grade']} ({credit['label']})
 - 최근 7일 기록:
 {recent}"""
 
@@ -75,8 +75,8 @@ def build_system_prompt(summary: dict[str, Any], open_tasks: Optional[list[dict[
 - 이모지는 답변당 최대 1개, 캐릭터 연기는 첫 문장 정도로만 짧게 하고 본론(숫자·분석·조언)은 정확하고 명확하게
 
 [서비스 설명]
-사용자는 오늘 처리하지 못하고 미래로 미룬 업무 시간을 '시간 부채(Time Debt)'로 기록합니다.
-value는 그날 마감 시점의 총 시간 부채(분)이고, 전날보다 늘면 '차입(외상)', 줄면 '상환'입니다.
+손님(사용자)은 오늘 처리하지 못한 일만큼 미래의 시간을 '시간 외상'으로 당겨 쓰고 장부에 기록합니다.
+value는 그날 마감 시점 장부에 남은 외상(분)이고, 전날보다 늘면 '외상 달기', 줄면 '외상 갚기'입니다.
 오늘 날짜: {today().isoformat()}
 
 [사용자 데이터 요약]
@@ -90,7 +90,8 @@ value는 그날 마감 시점의 총 시간 부채(분)이고, 전날보다 늘�
 - 요약에 없는 특정 날짜/기간의 세부 내용이 필요하면 get_records, 요일/월별 비교가 필요하면 get_statistics,
   이전 대화를 언급하면 list_conversations/get_conversation, 완료한 업무의 실제 시간이 필요하면 list_tasks 도구를 호출하세요.
 - 시간은 '2시간 30분'처럼 읽기 쉽게 표현하고, 답변은 한국어로 3~6문장 이내로 간결하게 (몰래 사장 말투 유지).
-- 필요하면 구체적인 상환 행동(언제, 무엇을, 얼마나)을 1~2개 제안하세요."""
+- 필요하면 외상을 갚는 구체적인 행동(언제, 무엇을, 얼마나)을 1~2개 제안하세요.
+- '부채', '상환', '차입', '신용등급' 대신 '외상', '갚기', '외상 달기', '손님 등급'이라는 말을 쓰세요."""
 
 
 def _history_messages(conversation: Optional[dict[str, Any]]) -> list[dict[str, str]]:

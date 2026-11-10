@@ -1,4 +1,4 @@
-// '오늘 할 일' 패널: AI 예상 시간 → 선택 → 추가, 완료 체크(실제 시간) → 남은 일 합계가 오늘의 부채
+// '오늘 할 일' 패널: AI 예상 시간 → 선택 → 추가, 완료 체크(실제 시간) → 남은 일 합계가 오늘의 외상
 import { api } from "./api.js";
 import { fmtMinutes } from "./charts.js";
 
@@ -57,7 +57,7 @@ function render() {
     : '<li class="empty">외상 제로! 몰래 사장이 살짝 섭섭해해요 🎉</li>';
   $("#done-tasks").innerHTML = doneToday.length
     ? doneToday.map(doneItem).join("")
-    : '<li class="empty">아직 오늘 끝낸 일이 없어요.</li>';
+    : '<li class="empty">아직 오늘 갚은 외상이 없어요.</li>';
 
   renderDebt();
   renderAccuracy();
@@ -124,7 +124,7 @@ function renderAccuracy() {
   box.innerHTML = `
     <p class="eyebrow">내 예측 습관</p>
     <p class="accuracy-msg">${msg}</p>
-    <p class="small muted">최근 완료 ${rows.length}건 기준 · AI가 이 경향을 반영해서 예상 시간을 제안해요</p>`;
+    <p class="small muted">최근 완료 ${rows.length}건 기준 · 몰래 사장이 이 습관을 감안해서 외상값을 셈해줘요</p>`;
 }
 
 function daysBetween(a, b) {
@@ -158,7 +158,7 @@ function renderEstimate({ loading = false, error = "" } = {}) {
       </label>
     </div>
     <div class="row">
-      <button type="button" class="btn btn-primary" id="add-task">부채에 추가${state.chosen ? ` · ${fmtMinutes(state.chosen)}` : ""}</button>
+      <button type="button" class="btn btn-primary" id="add-task">외상 달기${state.chosen ? ` · ${fmtMinutes(state.chosen)}` : ""}</button>
       <button type="button" class="btn-link" id="cancel-estimate">취소</button>
     </div>`;
 }
@@ -226,7 +226,7 @@ export function initTasks(context) {
     state.chosen = Number(evt.target.value) || null;
     document.querySelectorAll("#estimate-box .opt").forEach((o) => o.classList.toggle("active", o.classList.contains("opt-custom")));
     const add = $("#add-task");
-    add.textContent = `부채에 추가${state.chosen ? ` · ${fmtMinutes(state.chosen)}` : ""}`;
+    add.textContent = `외상 달기${state.chosen ? ` · ${fmtMinutes(state.chosen)}` : ""}`;
   });
   $("#estimate-box").addEventListener("keydown", (evt) => {
     if (evt.target.id === "custom-minutes" && evt.key === "Enter") { evt.preventDefault(); addTask(); }
@@ -267,11 +267,11 @@ export function initTasks(context) {
     if (Number.isNaN(minutes) || minutes < 0 || minutes > 1440) return ctx.toast("실제 시간을 0~1440분으로 입력하세요");
     const t = state.open.find((x) => x.id === form.dataset.complete);
     state.completingId = null;
-    await mutate(api.completeTask(form.dataset.complete, minutes), `‘${t?.title}’ 상환 완료! 외상 ${fmtMinutes(t?.estimated_minutes ?? 0)} 탕감~ 🪙`);
+    await mutate(api.completeTask(form.dataset.complete, minutes), `‘${t?.title}’ 외상 갚았네! 장부에서 ${fmtMinutes(t?.estimated_minutes ?? 0)} 지웠어~ 🪙`);
   });
   $("#done-tasks").addEventListener("click", async (evt) => {
     const reopen = evt.target.closest("[data-reopen]");
-    if (reopen) await mutate(api.reopenTask(reopen.dataset.reopen), "다시 남은 일로 옮겼어요");
+    if (reopen) await mutate(api.reopenTask(reopen.dataset.reopen), "다시 외상 장부에 달아뒀어");
   });
 }
 

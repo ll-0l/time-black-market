@@ -1,4 +1,4 @@
-"""시계열(하루 1건: 그날 마감 시점의 총 시간 부채, 분) 분석.
+"""시계열(하루 1건: 그날 마감 시점 장부에 남은 시간 외상, 분) 분석.
 
 Firestore에 의존하지 않는 순수 함수로 두어 테스트/재사용이 쉽도록 했다.
 """
@@ -34,7 +34,7 @@ def _fmt_minutes(minutes: float) -> str:
 
 
 def _prepare(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """날짜순 정렬 + 전일 대비 변화량(change) 계산. 양수=차입, 음수=상환."""
+    """날짜순 정렬 + 전일 대비 변화량(change) 계산. 양수=외상 달기, 음수=외상 갚기."""
     rows = sorted(
         ({"date": _to_date(r["date"]), "value": float(r["value"]), "memo": r.get("memo", "")} for r in records),
         key=lambda r: r["date"],
@@ -105,10 +105,10 @@ def _next_dates(weekday_ko: str, reference: dt.date, count: int = 3) -> list[str
 
 
 def _recommendation(weekdays: list[dict[str, Any]], reference: Optional[dt.date] = None) -> dict[str, Any]:
-    """추천 상환일: 평균 변화량이 가장 낮은(=평소 부채가 가장 많이 줄어드는) 요일.
+    """갚기 좋은 날: 평균 변화량이 가장 낮은(=평소 외상이 가장 많이 줄어드는) 요일.
 
-    '평균 부채가 가장 낮은 요일'은 부채 '수준'이라 전날의 영향을 크게 받는다.
-    상환 여력은 '그날 얼마나 줄였는가(변화량)'가 더 직접적인 지표이므로 변화량을 기준으로 한다.
+    '평균 외상이 가장 낮은 요일'은 외상 '잔액'이라 전날의 영향을 크게 받는다.
+    갚을 여력은 '그날 얼마나 줄였는가(변화량)'가 더 직접적인 지표이므로 변화량을 기준으로 한다.
     """
     candidates = [w for w in weekdays if w["average_change"] is not None]
     if not candidates:
@@ -125,17 +125,17 @@ def _recommendation(weekdays: list[dict[str, Any]], reference: Optional[dt.date]
         "avoid_weekday": worst["weekday"],
         "avoid_average_change": worst["average_change"],
         "reason": (
-            f"{best['weekday']}요일에 평균 {_fmt_minutes(-best['average_change'])}씩 부채가 줄어 상환 여력이 가장 큼. "
-            f"{worst['weekday']}요일은 평균 {_fmt_minutes(worst['average_change'])}씩 늘어 신규 차입을 조심해야 함"
+            f"{best['weekday']}요일에 평균 {_fmt_minutes(-best['average_change'])}씩 외상을 갚아서 갚기 제일 좋은 날. "
+            f"{worst['weekday']}요일엔 평균 {_fmt_minutes(worst['average_change'])}씩 외상이 늘어나니 조심"
         ),
     }
 
 
 def _payoff_forecast(rows: list[dict[str, Any]], window: int = 14) -> dict[str, Any]:
-    """최근 순변화 속도가 유지될 때 부채가 0이 되는 예상일(상환 완료 예상일)."""
+    """최근 순변화 속도가 유지될 때 외상이 0이 되는 날(다 갚는 날) 예측."""
     current = rows[-1]
     if current["value"] == 0:
-        return {"status": "완납", "estimated_date": current["date"].isoformat(), "days_left": 0}
+        return {"status": "다 갚음", "estimated_date": current["date"].isoformat(), "days_left": 0}
 
     recent = rows[-(window + 1) :]
     if len(recent) < 2:
@@ -145,35 +145,35 @@ def _payoff_forecast(rows: list[dict[str, Any]], window: int = 14) -> dict[str, 
     daily_rate = (recent[-1]["value"] - recent[0]["value"]) / elapsed_days
     if daily_rate >= 0:
         return {
-            "status": "상환 불가",
+            "status": "이대로면 못 갚음",
             "estimated_date": None,
             "days_left": None,
             "daily_rate": round(daily_rate, 1),
-            "description": f"최근 {elapsed_days}일 동안 하루 평균 {_fmt_minutes(daily_rate)}씩 늘어 현재 속도로는 갚을 수 없음",
+            "description": f"최근 {elapsed_days}일 동안 하루 평균 {_fmt_minutes(daily_rate)}씩 외상이 늘어 지금 속도로는 다 갚기 어려움",
         }
 
     days_left = int(-(-current["value"] // -daily_rate))  # ceil
     estimated = current["date"] + dt.timedelta(days=days_left)
     return {
-        "status": "상환 중",
+        "status": "갚는 중",
         "estimated_date": estimated.isoformat(),
         "days_left": days_left,
         "daily_rate": round(daily_rate, 1),
-        "description": f"하루 평균 {_fmt_minutes(-daily_rate)}씩 줄고 있어 {estimated.isoformat()}쯤 완납 예상",
+        "description": f"하루 평균 {_fmt_minutes(-daily_rate)}씩 줄고 있어 {estimated.isoformat()}쯤 다 갚을 예정",
     }
 
 
 def _credit_grade(current: float, average: float) -> dict[str, str]:
-    """시간 암시장 신용등급: 현재 부채를 평소(기간 평균)와 비교."""
+    """몰래 사장의 손님 등급: 지금 외상을 평소(기간 평균)와 비교."""
     ratio = current / average if average else 0
     if ratio < 0.8:
-        grade, label = "A", "우량 — 평소보다 부채가 적음"
+        grade, label = "A", "모범 손님 — 평소보다 외상이 적음"
     elif ratio < 1.0:
-        grade, label = "B", "양호 — 평균보다 조금 적음"
+        grade, label = "B", "단골 손님 — 평소보다 조금 적음"
     elif ratio < 1.25:
-        grade, label = "C", "주의 — 평균 이상으로 쌓임"
+        grade, label = "C", "외상 주의 — 평소보다 많이 쌓임"
     else:
-        grade, label = "D", "위험 — 평소보다 25% 이상 많음, 상환이 시급함"
+        grade, label = "D", "장부 빨간불 — 평소보다 25% 이상 많아 얼른 갚아야 함"
     return {"grade": grade, "label": label, "ratio_to_average": round(ratio, 2)}
 
 

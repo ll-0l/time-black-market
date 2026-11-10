@@ -121,21 +121,21 @@ async function wakeServer() {
   }
 }
 
-/* ================= 요약 (장부 카드 + 상환 추천일 카드) ================= */
+/* ================= 요약 (외상 장부 카드 + 갚기 좋은 날 카드) ================= */
 async function loadSummary() {
   try {
     state.summary = await api.summary();
     renderOverview();
   } catch (e) {
-    $("#ledger-card").innerHTML = `<p class="eyebrow">현재 시간 부채</p><p class="ledger-meta">${escapeHtml(e.message)}</p>`;
+    $("#ledger-card").innerHTML = `<p class="eyebrow">지금 장부에 달린 외상</p><p class="ledger-meta">${escapeHtml(e.message)}</p>`;
   }
 }
 
 function renderOverview() {
   const s = state.summary;
   if (!s || !s.count) {
-    $("#ledger-card").innerHTML = '<p class="eyebrow">현재 시간 부채</p><p class="big">0<small>분</small></p><p class="ledger-meta">장부 탭에서 첫 기록을 추가해 보세요.</p>';
-    $("#repay-card").innerHTML = '<p class="eyebrow">상환 추천일</p><p class="reason">기록이 쌓이면 추천해 드려요.</p>';
+    $("#ledger-card").innerHTML = '<p class="eyebrow">지금 장부에 달린 외상</p><p class="big">0<small>분</small></p><p class="ledger-meta">‘오늘 할 일’에 미룬 일을 맡겨 보세요.</p>';
+    $("#repay-card").innerHTML = '<p class="eyebrow">갚기 좋은 날</p><p class="reason">장부가 쌓이면 몰래 사장이 골라줄게요.</p>';
     return;
   }
   const m = s.metrics;
@@ -146,26 +146,26 @@ function renderOverview() {
   const arrow = t.label === "증가" ? "▲" : t.label === "감소" ? "▼" : "–";
 
   $("#ledger-card").innerHTML = `
-    <p class="eyebrow">현재 시간 부채 · ${m.current_date.slice(5).replace("-", "/")} 마감</p>
+    <p class="eyebrow">지금 장부에 달린 외상 · ${m.current_date.slice(5).replace("-", "/")} 마감</p>
     <p class="big">${fmtMinutes(m.current)}</p>
     <div class="chips">
       <span class="chip-stat ${trendCls}">${arrow} 7일 추세 <b>${t.change_pct > 0 ? "+" : ""}${t.change_pct}%</b></span>
-      <span class="chip-stat">신용등급 <b>${escapeHtml(credit.grade || "-")}</b> · ${escapeHtml((credit.label || "").split(" — ")[0])}</span>
-      <span class="chip-stat">${pay.estimated_date ? `완납 예상 <b>${pay.estimated_date.slice(5).replace("-", "/")}</b>` : escapeHtml(pay.status || "")}</span>
+      <span class="chip-stat">손님 등급 <b>${escapeHtml(credit.grade || "-")}</b> · ${escapeHtml((credit.label || "").split(" — ")[0])}</span>
+      <span class="chip-stat">${pay.estimated_date ? `다 갚는 날 <b>${pay.estimated_date.slice(5).replace("-", "/")}</b>` : escapeHtml(pay.status || "")}</span>
     </div>
     <p class="ledger-meta">${s.period.start} ~ ${s.period.end} · ${s.count}건 · 평균 ${fmtMinutes(m.average)} · 최대 ${fmtMinutes(m.max)} (${m.max_date})</p>`;
 
   const rec = s.recommendation || {};
   if (!rec.next_date) {
-    $("#repay-card").innerHTML = `<p class="eyebrow">상환 추천일</p><p class="reason">${escapeHtml(rec.reason || "데이터가 더 필요해요.")}</p>`;
+    $("#repay-card").innerHTML = `<p class="eyebrow">갚기 좋은 날</p><p class="reason">${escapeHtml(rec.reason || "데이터가 더 필요해요.")}</p>`;
     return;
   }
   const isToday = rec.next_date === todayISO();
   $("#repay-card").innerHTML = `
-    <span class="stamp" aria-hidden="true">REPAY<br/>DAY</span>
-    <p class="eyebrow">${isToday ? "오늘이 상환 추천일" : "다음 상환 추천일"}</p>
+    <span class="stamp" aria-hidden="true">갚는<br/>날</span>
+    <p class="eyebrow">${isToday ? "오늘이 갚기 좋은 날" : "다음 갚기 좋은 날"}</p>
     <p class="big">${prettyDate(rec.next_date)}</p>
-    <p class="reason">${escapeHtml(rec.weekday)}요일엔 평균 <b>${fmtMinutes(-rec.average_change)}</b>씩 갚았어요. ${escapeHtml(rec.avoid_weekday)}요일은 새 부채를 조심하세요.</p>
+    <p class="reason">${escapeHtml(rec.weekday)}요일엔 평균 <b>${fmtMinutes(-rec.average_change)}</b>씩 외상을 갚았어요. ${escapeHtml(rec.avoid_weekday)}요일엔 외상을 자주 다니 조심!</p>
     <div class="next-list" aria-label="이후 추천일">${(rec.next_dates || []).slice(1).map((d) => `<span>${d.slice(5).replace("-", "/")}</span>`).join("")}</div>`;
 }
 
@@ -218,9 +218,9 @@ function renderCalendar() {
     if (iso === today) cls.push("today");
     if (recDates.has(iso)) cls.push("repay");
     if (iso === state.selectedDate) cls.push("selected");
-    const label = `${prettyDate(iso)}${r ? ` 부채 ${fmtMinutes(r.value)}` : " 기록 없음"}${recDates.has(iso) ? ", 상환 추천일" : ""}`;
+    const label = `${prettyDate(iso)}${r ? ` 외상 ${fmtMinutes(r.value)}` : " 기록 없음"}${recDates.has(iso) ? ", 갚기 좋은 날" : ""}`;
     cells.push(`<button type="button" class="${cls.join(" ")}" style="${style}" data-date="${iso}" aria-label="${label}">
-        <span class="cal-day">${d}${recDates.has(iso) ? '<span class="cal-tag">상환</span>' : ""}</span>${body}</button>`);
+        <span class="cal-day">${d}${recDates.has(iso) ? '<span class="cal-tag">갚는 날</span>' : ""}</span>${body}</button>`);
   }
   $("#cal-grid").innerHTML = cells.join("");
 
@@ -228,7 +228,7 @@ function renderCalendar() {
   const down = monthRows.filter((r) => kindOf(r) === "down");
   const net = monthRows.length ? monthRows[monthRows.length - 1].value - (byDate[monthRows[0].date].value - (monthRows[0].change || 0)) : 0;
   $("#cal-month-stats").innerHTML = monthRows.length
-    ? `부채 생긴 날 <b class="up">${up.length}</b> · 줄어든 날 <b class="down">${down.length}</b> · 이번 달 순변화 <b class="${net > 0 ? "up" : net < 0 ? "down" : ""}">${signed(net)}</b>`
+    ? `외상 단 날 <b class="up">${up.length}</b> · 갚은 날 <b class="down">${down.length}</b> · 이번 달 외상 변화 <b class="${net > 0 ? "up" : net < 0 ? "down" : ""}">${signed(net)}</b>`
     : '<span class="muted">이 달에는 기록이 없어요</span>';
 
   renderDayDetail();
@@ -241,7 +241,7 @@ function renderDayDetail() {
   const rec = state.summary?.recommendation;
   const isRepay = (rec?.next_dates || []).includes(iso);
   const repayNote = isRepay
-    ? `<p class="repay-note">🪙 <b>상환 추천일</b> · ${escapeHtml(rec.weekday)}요일엔 평균 ${fmtMinutes(-rec.average_change)}씩 줄었어요. 미뤄둔 일 하나를 갚아 보세요.</p>`
+    ? `<p class="repay-note">🪙 <b>갚기 좋은 날</b> · ${escapeHtml(rec.weekday)}요일엔 평균 ${fmtMinutes(-rec.average_change)}씩 외상을 갚았어요. 미뤄둔 일 하나를 갚아 보세요.</p>`
     : "";
 
   if (!r) {
@@ -254,7 +254,7 @@ function renderDayDetail() {
     return;
   }
   const k = kindOf(r);
-  const changeText = k === "first" ? "첫 기록" : k === "flat" ? "변화 없음" : `${k === "up" ? "▲ 부채 생김" : "▼ 부채 줄어듦"} ${signed(r.change)}`;
+  const changeText = k === "first" ? "첫 기록" : k === "flat" ? "변화 없음" : `${k === "up" ? "▲ 외상 달았어요" : "▼ 외상 갚았어요"} ${signed(r.change)}`;
   box.innerHTML = `
     <p class="eyebrow">${prettyDate(iso, true)}</p>
     <p class="big">${fmtMinutes(r.value)}</p>
@@ -334,7 +334,7 @@ function greeting() {
   const rec = s.recommendation || {};
   const debt = fmtMinutes(s.metrics.current);
   const trend = s.trend.label === "감소" ? "요즘 꼬박꼬박 갚고 있구먼, 기특해~" : s.trend.label === "증가" ? "요새 외상이 좀 불어났더라?" : "장부가 잔잔~하네.";
-  const next = rec.next_date ? ` 다음 상환 추천일은 ${prettyDate(rec.next_date)}이야.` : "";
+  const next = rec.next_date ? ` 다음 갚기 좋은 날은 ${prettyDate(rec.next_date)}이야.` : "";
   return `${opener}\n지금 외상 장부엔 ${debt}이 달려 있어. ${trend}${next}`;
 }
 
@@ -380,11 +380,12 @@ function initConversations() {
 
 /* ================= 채팅 ================= */
 const TOOL_LABELS = {
-  get_data_summary: "요약 재조회",
-  get_statistics: "통계 조회",
-  get_records: "기간 기록 조회",
-  list_conversations: "대화 목록 조회",
-  get_conversation: "이전 대화 조회",
+  get_data_summary: "장부 요약 다시 봄",
+  get_statistics: "요일·월별 장부 봄",
+  get_records: "그때 장부 펼쳐봄",
+  list_conversations: "지난 상담 목록 봄",
+  get_conversation: "지난 상담 다시 봄",
+  list_tasks: "남은 외상 확인",
 };
 
 function appendMessage(role, content, tools = [], { error = false } = {}) {
@@ -409,7 +410,7 @@ function appendMessage(role, content, tools = [], { error = false } = {}) {
         const name = typeof tool === "string" ? tool : tool.name;
         const args = typeof tool === "object" && tool.arguments && Object.keys(tool.arguments).length
           ? ` ${Object.values(tool.arguments).join(" ~ ")}` : "";
-        return `<span class="tool-badge" title="AI가 호출한 도구: ${escapeHtml(name)}">🔧 ${escapeHtml(TOOL_LABELS[name] || name)}${escapeHtml(args)}</span>`;
+        return `<span class="tool-badge" title="몰래 사장이 들춰본 장부: ${escapeHtml(name)}">🔧 ${escapeHtml(TOOL_LABELS[name] || name)}${escapeHtml(args)}</span>`;
       })
       .join("");
     div.appendChild(t);
@@ -520,9 +521,9 @@ function renderDataTable(flashId) {
 
   const sum = (list) => list.reduce((acc, r) => acc + Math.abs(r.change), 0);
   const summary = {
-    all: `총 <b>${inMonth.length}</b>일 · 생긴 날 <b class="up">${up.length}</b> · 줄어든 날 <b class="down">${down.length}</b>`,
-    up: `부채가 생긴 <b>${up.length}</b>일 동안 새로 빌린 시간 <b class="up">+${fmtMinutes(sum(up))}</b> · 하루 평균 ${up.length ? fmtMinutes(sum(up) / up.length) : "-"}`,
-    down: `부채가 줄어든 <b>${down.length}</b>일 동안 갚은 시간 <b class="down">${fmtMinutes(sum(down))}</b> · 하루 평균 ${down.length ? fmtMinutes(sum(down) / down.length) : "-"}`,
+    all: `총 <b>${inMonth.length}</b>일 · 외상 단 날 <b class="up">${up.length}</b> · 갚은 날 <b class="down">${down.length}</b>`,
+    up: `외상을 단 <b>${up.length}</b>일 동안 새로 단 외상 <b class="up">+${fmtMinutes(sum(up))}</b> · 하루 평균 ${up.length ? fmtMinutes(sum(up) / up.length) : "-"}`,
+    down: `외상을 갚은 <b>${down.length}</b>일 동안 갚은 외상 <b class="down">${fmtMinutes(sum(down))}</b> · 하루 평균 ${down.length ? fmtMinutes(sum(down) / down.length) : "-"}`,
   };
   $("#kind-summary").innerHTML = summary[state.kind];
 
@@ -610,7 +611,7 @@ function initLedger() {
     // 1차 검증 (최종 검증은 서버 Pydantic)
     if (!date) return setFormMessage("날짜를 선택하세요.", "err");
     if (date > todayISO()) return setFormMessage("미래 날짜는 기록할 수 없어요.", "err");
-    if (valueRaw === "" || Number.isNaN(value) || value < 0) return setFormMessage("시간 부채는 0 이상의 숫자(분)로 입력하세요.", "err");
+    if (valueRaw === "" || Number.isNaN(value) || value < 0) return setFormMessage("외상은 0 이상의 숫자(분)로 입력하세요.", "err");
     if (value > 10080) return setFormMessage("하루 기록은 최대 10080분(7일)까지예요.", "err");
 
     const submit = $("#data-submit");
@@ -713,7 +714,7 @@ function renderInsightCharts() {
   const series = st.series.map((p) => ({ ...p, memo: memoByDate[p.date] }));
   const sliced = state.range === "all" ? series : series.slice(-Number(state.range));
   $("#line-legend").innerHTML = `
-    <span class="legend-item"><i class="swatch" style="background:var(--series-1)"></i>일별 마감 부채</span>
+    <span class="legend-item"><i class="swatch" style="background:var(--series-1)"></i>그날 남은 외상</span>
     <span class="legend-item"><i class="swatch" style="background:repeating-linear-gradient(90deg,var(--series-2) 0 6px,transparent 6px 9px)"></i>7일 이동평균</span>`;
   renderLineChart($("#line-chart"), sliced);
   renderWeekdayChart($("#weekday-chart"), st.weekday, state.summary?.recommendation?.weekday);
@@ -756,7 +757,7 @@ async function main() {
   initTasks({
     toast,
     today: todayISO,
-    // 할 일이 바뀌면 오늘 부채가 자동 재계산되므로 요약·장부·캘린더를 새로고침
+    // 할 일이 바뀌면 오늘 외상이 자동 재계산되므로 요약·장부·캘린더를 새로고침
     onDebtChange: async () => {
       state.insightDirty = true;
       await Promise.all([loadSummary(), loadData()]);

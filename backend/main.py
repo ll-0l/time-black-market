@@ -14,8 +14,8 @@ APP_VERSION = "0.5.0"
 app = FastAPI(
     title="Time Black Market API",
     description=(
-        "미래로 이월된 업무 시간을 Time Debt로 관리하고 "
-        "AI가 상환 계획을 분석하는 서비스 API"
+        "오늘 못 한 일을 미래의 시간에서 외상으로 당겨 쓰고 "
+        "몰래 사장(AI)과 함께 갚아나가는 시간 외상 장부 API"
     ),
     version=APP_VERSION,
 )

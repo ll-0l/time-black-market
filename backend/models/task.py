@@ -75,7 +75,7 @@ class TaskResponse(BaseModel):
 
 class TodayDebt(BaseModel):
     date: dt.date
-    value: float = Field(description="남은 업무 예상 시간 합계(분) = 오늘의 시간 부채")
+    value: float = Field(description="남은 업무 예상 시간 합계(분) = 오늘 달아둔 외상")
     open_count: int
     memo: str
 

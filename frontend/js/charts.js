@@ -45,7 +45,7 @@ function escapeHtml(s) {
 }
 
 /**
- * 시간 부채 꺾은선 차트: 일별 값 + 7일 이동평균 (단일 y축).
+ * 시간 외상 꺾은선 차트: 일별 값 + 7일 이동평균 (단일 y축).
  * points: [{date, value, moving_average_7, change, memo?}]
  */
 export function renderLineChart(container, points) {
@@ -64,7 +64,7 @@ export function renderLineChart(container, points) {
   const x = (i) => m.left + (points.length === 1 ? iw / 2 : (i / (points.length - 1)) * iw);
   const y = (v) => m.top + ih - (v / maxY) * ih;
 
-  const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, height, role: "img", "aria-label": "시간 부채 추이 꺾은선 차트" }, container);
+  const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, height, role: "img", "aria-label": "외상 장부 흐름 꺾은선 차트" }, container);
 
   // 가로 눈금 (시간 단위)
   const axis = el("g", { class: "axis" }, svg);
@@ -130,7 +130,7 @@ export function renderLineChart(container, points) {
       `<div class="tt-row"><span>전일 대비</span><b class="mono">${p.change > 0 ? "+" : ""}${fmtMinutes(p.change)}</b></div>`;
     showTooltip(
       `<div class="tt-title">${p.date}</div>
-       <div class="tt-row"><span><i class="swatch" style="background:var(--series-1)"></i>일별 부채</span><b class="mono">${fmtMinutes(p.value)}</b></div>
+       <div class="tt-row"><span><i class="swatch" style="background:var(--series-1)"></i>남은 외상</span><b class="mono">${fmtMinutes(p.value)}</b></div>
        <div class="tt-row"><span><i class="swatch" style="background:var(--series-2)"></i>7일 평균</span><b class="mono">${fmtMinutes(p.moving_average_7)}</b></div>
        ${change}
        ${p.memo ? `<div class="tt-memo">${escapeHtml(p.memo)}</div>` : ""}`,
@@ -147,7 +147,7 @@ export function renderLineChart(container, points) {
 }
 
 /**
- * 요일별 평균 증감 양방향 막대 (0 기준선, 위=차입 / 아래=상환).
+ * 요일별 평균 증감 양방향 막대 (0 기준선, 위=외상 단 요일 / 아래=외상 갚은 요일).
  * items: [{weekday, average_change, average_debt, count}]
  */
 export function renderWeekdayChart(container, items, recommended) {
@@ -196,9 +196,9 @@ export function renderWeekdayChart(container, items, recommended) {
     const hit = el("rect", { x: cx - band / 2, y: m.top - 16, width: band, height: ih + 16, class: "hit" }, svg);
     const show = (evt) =>
       showTooltip(
-        `<div class="tt-title">${d.weekday}요일${d.weekday === recommended ? " · 추천 상환일" : ""}</div>
-         <div class="tt-row"><span>평균 증감</span><b class="mono">${v > 0 ? "+" : ""}${fmtMinutes(v)}</b></div>
-         <div class="tt-row"><span>평균 부채</span><b class="mono">${fmtMinutes(d.average_debt)}</b></div>
+        `<div class="tt-title">${d.weekday}요일${d.weekday === recommended ? " · 갚기 좋은 날" : ""}</div>
+         <div class="tt-row"><span>평균 외상 변화</span><b class="mono">${v > 0 ? "+" : ""}${fmtMinutes(v)}</b></div>
+         <div class="tt-row"><span>평균 외상</span><b class="mono">${fmtMinutes(d.average_debt)}</b></div>
          <div class="tt-row"><span>기록 수</span><b class="mono">${d.count}일</b></div>`,
         evt.clientX, evt.clientY,
       );

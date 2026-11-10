@@ -15,7 +15,7 @@ class ChatRequest(BaseModel):
             raise ValueError("질문을 입력하세요.")
         return value
 
-    model_config = {"json_schema_extra": {"example": {"message": "추천 상환일이 언제야?", "conversation_id": None}}}
+    model_config = {"json_schema_extra": {"example": {"message": "갚기 좋은 날이 언제야?", "conversation_id": None}}}
 
 
 class ToolCallLog(BaseModel):

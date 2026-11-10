@@ -40,7 +40,7 @@ def list_tasks(
     "",
     response_model=TaskMutationResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="업무 추가 → 오늘의 시간 부채 자동 재계산",
+    summary="업무 추가 → 오늘의 외상 자동 재계산",
 )
 def create_task(body: TaskCreate):
     task = task_service.create_task(body.title, body.estimated_minutes, body.ai_estimate)
@@ -53,13 +53,13 @@ def update_task(task_id: str, body: TaskUpdate):
     return {"task": task, "today_debt": task_service.sync_today_debt()}
 
 
-@router.post("/{task_id}/complete", response_model=TaskMutationResponse, summary="업무 완료 (실제 소요 시간 기록 → 부채에서 제외)")
+@router.post("/{task_id}/complete", response_model=TaskMutationResponse, summary="업무 완료 (실제 소요 시간 기록 → 외상 갚음)")
 def complete_task(task_id: str, body: TaskComplete):
     task = task_service.complete_task(task_id, body.actual_minutes)
     return {"task": task, "today_debt": task_service.sync_today_debt()}
 
 
-@router.post("/{task_id}/reopen", response_model=TaskMutationResponse, summary="완료 취소 (다시 부채로)")
+@router.post("/{task_id}/reopen", response_model=TaskMutationResponse, summary="완료 취소 (다시 외상으로)")
 def reopen_task(task_id: str):
     task = task_service.reopen_task(task_id)
     return {"task": task, "today_debt": task_service.sync_today_debt()}

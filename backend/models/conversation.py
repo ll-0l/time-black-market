@@ -29,9 +29,9 @@ class ConversationCreate(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
-                "title": "이번 주 상환 계획",
+                "title": "이번 주 외상 갚을 계획",
                 "messages": [
-                    {"role": "user", "content": "이번 주 시간 부채 어때?"},
+                    {"role": "user", "content": "이번 주 외상 어때?"},
                     {"role": "assistant", "content": "최근 7일 평균이 직전 주보다 16% 줄었어요."},
                 ],
             }

@@ -21,12 +21,12 @@ class DataCreate(BaseModel):
         ...,
         ge=0,
         le=MAX_DEBT_MINUTES,
-        description="해당 날짜 마감 시점의 총 시간 부채(분)",
+        description="해당 날짜 마감 시점 장부에 남은 시간 외상(분)",
     )
     memo: str = Field(
         default="",
         max_length=500,
-        description="해당 날짜에 미룬 업무 / 상환한 업무 메모",
+        description="해당 날짜에 미룬 업무 / 끝낸 업무 메모",
     )
 
     _check_date = field_validator("date")(_validate_not_future)
@@ -55,7 +55,7 @@ class DataUpdate(BaseModel):
     _check_date = field_validator("date")(_validate_not_future)
 
     model_config = {
-        "json_schema_extra": {"example": {"value": 180, "memo": "보고서 상환 완료"}}
+        "json_schema_extra": {"example": {"value": 180, "memo": "보고서 끝내서 외상 갚음"}}
     }
 
 
