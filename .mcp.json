@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "time-black-market": {
+      "command": "venv/bin/python",
+      "args": ["mcp_server/server.py"],
+      "env": {
+        "TBM_API_BASE_URL": "https://time-black-market-api.onrender.com"
+      }
+    }
+  }
+}
