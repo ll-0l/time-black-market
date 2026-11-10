@@ -54,7 +54,7 @@ function render() {
 
   $("#open-tasks").innerHTML = state.open.length
     ? state.open.map(openItem).join("")
-    : '<li class="empty">남은 일이 없어요. 부채 제로! 🎉</li>';
+    : '<li class="empty">외상 제로! 몰래 사장이 살짝 섭섭해해요 🎉</li>';
   $("#done-tasks").innerHTML = doneToday.length
     ? doneToday.map(doneItem).join("")
     : '<li class="empty">아직 오늘 끝낸 일이 없어요.</li>';
@@ -137,7 +137,7 @@ function renderEstimate({ loading = false, error = "" } = {}) {
   box.hidden = false;
   const title = escapeHtml(state.estimate?.title ?? $("#task-title").value.trim());
   if (loading) {
-    box.innerHTML = `<p class="typing"><span class="dots"><i></i><i></i><i></i></span> ‘${title}’ 에 걸릴 시간을 AI가 계산하는 중…</p>`;
+    box.innerHTML = `<p class="typing"><span class="dots"><i></i><i></i><i></i></span> 몰래 사장이 ‘${title}’ 시세를 감정하는 중…</p>`;
     return;
   }
   const est = state.estimate;
@@ -150,7 +150,7 @@ function renderEstimate({ loading = false, error = "" } = {}) {
   box.innerHTML = `
     <p class="estimate-title"><b>${title}</b> 예상 소요 시간</p>
     ${error ? `<p class="form-msg err">${escapeHtml(error)}</p>` : ""}
-    ${est ? `<p class="small muted">🤖 ${escapeHtml(est.reason)}${est.history_used ? ` · 내 완료 기록 ${est.history_used}건 참고` : ""}</p>` : ""}
+    ${est ? `<p class="merchant-say"><img src="assets/mollae.svg" alt="몰래 사장" /><span>${escapeHtml(est.reason)}${est.history_used ? `<em> · 손님 완료 기록 ${est.history_used}건 참고</em>` : ""}</span></p>` : ""}
     <div class="opts">${options}
       <label class="opt opt-custom ${est && !est.options.some((o) => o.minutes === state.chosen) ? "active" : ""}">
         <span class="opt-label">직접 입력</span>
@@ -197,7 +197,7 @@ async function addTask() {
     ? { options: state.estimate.options, recommended: state.estimate.recommended, reason: state.estimate.reason }
     : null;
   closeEstimate();
-  await mutate(api.createTask({ title, estimated_minutes: minutes, ai_estimate: aiEstimate }), `‘${title}’ ${fmtMinutes(minutes)}이 부채에 추가됐어요`);
+  await mutate(api.createTask({ title, estimated_minutes: minutes, ai_estimate: aiEstimate }), `‘${title}’ ${fmtMinutes(minutes)} 외상 장부에 올렸어~`);
   $("#task-title").focus();
 }
 
@@ -267,7 +267,7 @@ export function initTasks(context) {
     if (Number.isNaN(minutes) || minutes < 0 || minutes > 1440) return ctx.toast("실제 시간을 0~1440분으로 입력하세요");
     const t = state.open.find((x) => x.id === form.dataset.complete);
     state.completingId = null;
-    await mutate(api.completeTask(form.dataset.complete, minutes), `‘${t?.title}’ 상환 완료! 부채에서 ${fmtMinutes(t?.estimated_minutes ?? 0)} 줄었어요`);
+    await mutate(api.completeTask(form.dataset.complete, minutes), `‘${t?.title}’ 상환 완료! 외상 ${fmtMinutes(t?.estimated_minutes ?? 0)} 탕감~ 🪙`);
   });
   $("#done-tasks").addEventListener("click", async (evt) => {
     const reopen = evt.target.closest("[data-reopen]");

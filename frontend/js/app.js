@@ -322,15 +322,31 @@ async function openConversation(id) {
   }
 }
 
+function greeting() {
+  const s = state.summary;
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+  const opener = pick([
+    "어서오렴~ 오늘은 어느 날의 시간을 사러 왔니? 🕶️",
+    "쉿, 여긴 땅굴 아래 시간 암시장이야. 들어와, 들어와~",
+    "오, 단골 손님 왔네! 오늘 시세 한번 보고 갈래?",
+  ]);
+  if (!s || !s.count) return `${opener}\n아직 장부가 텅 비었네. '오늘 할 일'에 미룬 일부터 맡겨보렴.`;
+  const rec = s.recommendation || {};
+  const debt = fmtMinutes(s.metrics.current);
+  const trend = s.trend.label === "감소" ? "요즘 꼬박꼬박 갚고 있구먼, 기특해~" : s.trend.label === "증가" ? "요새 외상이 좀 불어났더라?" : "장부가 잔잔~하네.";
+  const next = rec.next_date ? ` 다음 상환 추천일은 ${prettyDate(rec.next_date)}이야.` : "";
+  return `${opener}\n지금 외상 장부엔 ${debt}이 달려 있어. ${trend}${next}`;
+}
+
 function newChat() {
   state.conversationId = null;
   $("#chat-title").textContent = "새 대화";
   $("#quick-questions").hidden = false;
   $("#messages").innerHTML = `
     <div class="welcome">
-      <img src="assets/logo.svg" alt="" />
-      <p><b>시간 암시장 상담 창구</b></p>
-      <p class="small">위 장부 요약이 AI에게 그대로 전달돼요. 필요하면 AI가 날짜별 기록이나 이전 대화를 직접 찾아보고 답해요.</p>
+      <img class="merchant-hero" src="assets/mollae.svg" alt="몰래 사장" />
+      <p class="speech">${escapeHtml(greeting())}</p>
+      <p class="small muted">몰래 사장은 내 장부 요약을 보고 답해요. 필요하면 날짜별 기록이나 지난 대화도 직접 뒤져봐요.</p>
     </div>`;
   renderConversationList();
 }
@@ -376,6 +392,14 @@ function appendMessage(role, content, tools = [], { error = false } = {}) {
   box.querySelector(".welcome")?.remove();
   const div = document.createElement("div");
   div.className = `msg ${role}${error ? " error" : ""}`;
+  let row = div;
+  if (role === "assistant") {
+    // 몰래 사장 아바타 + 말풍선
+    row = document.createElement("div");
+    row.className = "msg-row";
+    row.innerHTML = '<img class="avatar" src="assets/mollae.svg" alt="몰래 사장" />';
+    row.appendChild(div);
+  }
   div.innerHTML = renderRichText(content);
   if (tools && tools.length) {
     const t = document.createElement("div");
@@ -390,21 +414,21 @@ function appendMessage(role, content, tools = [], { error = false } = {}) {
       .join("");
     div.appendChild(t);
   }
-  box.appendChild(div);
+  box.appendChild(row);
   box.scrollTop = box.scrollHeight;
 }
 
 function showTyping() {
   const box = $("#messages");
   const div = document.createElement("div");
-  div.className = "msg assistant";
-  div.innerHTML = '<span class="typing"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">AI가 장부를 살펴보는 중…</span></span>';
+  div.className = "msg-row";
+  div.innerHTML = '<img class="avatar" src="assets/mollae.svg" alt="" /><div class="msg assistant"><span class="typing"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">몰래 사장이 장부를 뒤적이는 중…</span></span></div>';
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
   const started = Date.now();
   const timer = setInterval(() => {
     const sec = Math.round((Date.now() - started) / 1000);
-    div.querySelector(".typing-text").textContent = sec > 20 ? `조금만 더 기다려 주세요… ${sec}초` : `AI가 장부를 살펴보는 중… ${sec}초`;
+    div.querySelector(".typing-text").textContent = sec > 20 ? `땅굴이 좀 깊어서… 조금만 기다려~ ${sec}초` : `몰래 사장이 장부를 뒤적이는 중… ${sec}초`;
   }, 1000);
   return () => { clearInterval(timer); div.remove(); };
 }
@@ -427,7 +451,7 @@ async function sendMessage(text) {
     state.conversationId = res.conversation_id;
     $("#chat-title").textContent = res.title;
     await loadConversations();
-    if (isNew) toast("대화가 자동 저장됐어요");
+    if (isNew) toast("상담 내용은 장부에 몰래 적어뒀어 📒");
   } catch (e) {
     stopTyping();
     appendMessage("assistant", `⚠️ ${e.message}`, [], { error: true });
@@ -745,6 +769,7 @@ async function main() {
   if (!(await wakeServer())) return;
   await Promise.all([loadSummary(), loadConversations(), loadData(), loadTasks()]);
   renderCalendar(); // 요약(추천일) 도착 후 다시 그림
+  if (!state.conversationId && $("#messages .welcome")) newChat(); // 장부 데이터를 반영한 인사
   if (!$("#panel-insight").hidden) loadInsight();
 }
 

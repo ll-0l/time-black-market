@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="몰래 사장">
+  <!-- 몰래 사장: 시간 암시장의 두더지 상인 -->
+  <!-- 트렌치코트 -->
+  <path d="M24 118c0-27 15-44 36-44s36 17 36 44z" fill="#4a3f35"/>
+  <path d="M60 76 47 118h26z" fill="#e9d8c4"/>
+  <path d="M60 76 44 90l9 28 7-24z" fill="#3a3129"/>
+  <path d="M60 76 76 90l-9 28-7-24z" fill="#3a3129"/>
+  <path d="M55 82h10l-5 6z" fill="#e0a63a"/>
+  <!-- 머리 -->
+  <ellipse cx="60" cy="56" rx="31" ry="28" fill="#8b6e5a"/>
+  <ellipse cx="60" cy="67" rx="19" ry="13" fill="#b8967c"/>
+  <!-- 볼터치 -->
+  <ellipse cx="38" cy="64" rx="5" ry="3" fill="#ff9fb1" opacity=".55"/>
+  <ellipse cx="82" cy="64" rx="5" ry="3" fill="#ff9fb1" opacity=".55"/>
+  <!-- 선글라스 -->
+  <path d="M40 51h40" stroke="#15130c" stroke-width="2.5"/>
+  <circle cx="48" cy="52" r="8.5" fill="#15130c"/>
+  <circle cx="72" cy="52" r="8.5" fill="#15130c"/>
+  <path d="M43 49.5c1.2-2.4 3.4-3.6 5.6-3.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+  <path d="M67 49.5c1.2-2.4 3.4-3.6 5.6-3.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+  <!-- 코 -->
+  <ellipse cx="60" cy="62" rx="7.5" ry="5.5" fill="#ff8fa3"/>
+  <ellipse cx="57.5" cy="60.3" rx="2.2" ry="1.4" fill="#fff" opacity=".7"/>
+  <!-- 수염 -->
+  <path d="M46 64 31 61M46 67 31 68M74 64l15-3M74 67l15 1" stroke="#5a4637" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- 금니 미소 -->
+  <path d="M51 71q9 7 18 0" fill="none" stroke="#3a2a20" stroke-width="2" stroke-linecap="round"/>
+  <rect x="61" y="72.2" width="3.6" height="3.4" rx=".8" fill="#e0a63a"/>
+  <!-- 페도라 -->
+  <ellipse cx="60" cy="33" rx="38" ry="7" fill="#26211c"/>
+  <path d="M37 33c0-17 9-24 23-24s23 7 23 24z" fill="#26211c"/>
+  <path d="M52 12c4 3 12 3 16 0" stroke="#3b342d" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M37.6 27h44.8v5.4H37.6z" fill="#e0a63a"/>
+  <!-- 모자 띠의 작은 모래시계 -->
+  <path d="M73 27.4h4.6l-2.3 2.3 2.3 2.3H73l2.3-2.3z" fill="#26211c"/>
+  <!-- 앞발 + 모래시계 -->
+  <g transform="translate(60 100)">
+    <path d="M-7-11h14M-7 11h14" stroke="#e0a63a" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M-5.5-10h11c0 5-3.5 7-5.5 10 2 3 5.5 5 5.5 10h-11c0-5 3.5-7 5.5-10-2-3-5.5-5-5.5-10z" fill="#fff6e3" stroke="#e0a63a" stroke-width="1.6"/>
+    <path d="M-3.2-7h6.4c-.7 2-2 3.2-3.2 4.6-1.2-1.4-2.5-2.6-3.2-4.6zM-3.6 9c.6-2.4 2-3.6 3.6-4.4 1.6.8 3 2 3.6 4.4z" fill="#e0a63a"/>
+  </g>
+  <ellipse cx="46" cy="101" rx="7" ry="5.5" fill="#ffb3c1"/>
+  <ellipse cx="74" cy="101" rx="7" ry="5.5" fill="#ffb3c1"/>
+  <path d="M41 99.5h3M41 102.5h3M76 99.5h3M76 102.5h3" stroke="#e8899b" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

@@ -22,7 +22,7 @@
       <img class="logo" src="assets/logo.svg" alt="" width="40" height="40" />
       <span class="wordmark">
         <span class="wordmark-main">TIME BLACK MARKET</span>
-        <span class="wordmark-sub">시간 암시장 · 오늘 편했던 만큼, 미래의 나는 바빠진다</span>
+        <span class="wordmark-sub">몰래 사장의 시간 암시장 · 오늘 편했던 만큼, 미래의 나는 바빠진다</span>
       </span>
     </a>
     <div class="topbar-actions">
@@ -58,8 +58,8 @@
         <div class="box tasks-box">
           <form id="task-form" class="task-form" autocomplete="off">
             <label for="task-title" class="sr">해야 할 일</label>
-            <input id="task-title" maxlength="100" placeholder="미룰 것 같은 일을 적어보세요 (예: 주간 보고서 작성)" required />
-            <button id="task-estimate" class="btn btn-primary" type="submit">AI 예상 시간</button>
+            <input id="task-title" maxlength="100" placeholder="미룰 것 같은 일을 맡겨보세요 (예: 주간 보고서 작성)" required />
+            <button id="task-estimate" class="btn btn-primary" type="submit">사장님, 감정해줘요</button>
           </form>
           <div id="estimate-box" class="estimate-box" hidden aria-live="polite"></div>
 
@@ -126,16 +126,16 @@
       <div class="box chat">
         <div class="chat-head">
           <h3 id="chat-title">새 대화</h3>
-          <span class="muted small">위 장부 요약을 근거로 답해요</span>
+          <span class="merchant-tag"><img src="assets/mollae.svg" alt="" />몰래 사장 · 24시간 영업 중</span>
         </div>
         <div id="messages" class="messages" aria-live="polite"></div>
         <div class="quick" id="quick-questions">
-          <button type="button" class="chip">요즘 내 시간 부채 상황 어때?</button>
-          <button type="button" class="chip">다음 상환 추천일에 뭘 하면 좋을까?</button>
-          <button type="button" class="chip">남은 일 중 뭐부터 하면 좋을까?</button>
+          <button type="button" class="chip">사장님, 요즘 내 외상 어때요?</button>
+          <button type="button" class="chip">다음 상환일엔 뭘 갚을까?</button>
+          <button type="button" class="chip">남은 일 중 뭐부터 할까?</button>
         </div>
         <form id="chat-form" class="chat-form">
-          <textarea id="chat-input" rows="1" maxlength="1000" placeholder="시간 부채에 대해 물어보세요" title="Enter 전송 · Shift+Enter 줄바꿈" required></textarea>
+          <textarea id="chat-input" rows="1" maxlength="1000" placeholder="몰래 사장에게 물어보세요" title="Enter 전송 · Shift+Enter 줄바꿈" required></textarea>
           <button id="chat-send" class="btn btn-primary" type="submit">보내기</button>
         </form>
       </div>
@@ -225,7 +225,7 @@
   </main>
 
   <footer class="footer">
-    <span class="muted small">© Time Black Market · FastAPI · Firestore · GPT</span>
+    <span class="muted small">© 몰래 사장의 Time Black Market · 시간은 외상으로, 상환은 기분 좋게 · FastAPI · Firestore · GPT</span>
     <a id="docs-link" class="small" href="#" target="_blank" rel="noopener">API 문서</a>
   </footer>
 
