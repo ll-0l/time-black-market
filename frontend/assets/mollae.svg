@@ -1,45 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="몰래 사장">
-  <!-- 몰래 사장: 땅굴 암시장 구멍가게의 두더지 사장님 (미래의 시간을 외상으로 내주는 가게) -->
-  <!-- 트렌치코트 -->
-  <path d="M24 118c0-27 15-44 36-44s36 17 36 44z" fill="#4a3f35"/>
-  <path d="M60 76 47 118h26z" fill="#e9d8c4"/>
-  <path d="M60 76 44 90l9 28 7-24z" fill="#3a3129"/>
-  <path d="M60 76 76 90l-9 28-7-24z" fill="#3a3129"/>
-  <path d="M55 82h10l-5 6z" fill="#e0a63a"/>
-  <!-- 머리 -->
-  <ellipse cx="60" cy="56" rx="31" ry="28" fill="#8b6e5a"/>
-  <ellipse cx="60" cy="67" rx="19" ry="13" fill="#b8967c"/>
-  <!-- 볼터치 -->
-  <ellipse cx="38" cy="64" rx="5" ry="3" fill="#ff9fb1" opacity=".55"/>
-  <ellipse cx="82" cy="64" rx="5" ry="3" fill="#ff9fb1" opacity=".55"/>
-  <!-- 선글라스 -->
-  <path d="M40 51h40" stroke="#15130c" stroke-width="2.5"/>
-  <circle cx="48" cy="52" r="8.5" fill="#15130c"/>
-  <circle cx="72" cy="52" r="8.5" fill="#15130c"/>
-  <path d="M43 49.5c1.2-2.4 3.4-3.6 5.6-3.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
-  <path d="M67 49.5c1.2-2.4 3.4-3.6 5.6-3.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
-  <!-- 코 -->
-  <ellipse cx="60" cy="62" rx="7.5" ry="5.5" fill="#ff8fa3"/>
-  <ellipse cx="57.5" cy="60.3" rx="2.2" ry="1.4" fill="#fff" opacity=".7"/>
-  <!-- 수염 -->
-  <path d="M46 64 31 61M46 67 31 68M74 64l15-3M74 67l15 1" stroke="#5a4637" stroke-width="1.3" stroke-linecap="round"/>
-  <!-- 금니 미소 -->
-  <path d="M51 71q9 7 18 0" fill="none" stroke="#3a2a20" stroke-width="2" stroke-linecap="round"/>
-  <rect x="61" y="72.2" width="3.6" height="3.4" rx=".8" fill="#e0a63a"/>
-  <!-- 페도라 -->
-  <ellipse cx="60" cy="33" rx="38" ry="7" fill="#26211c"/>
-  <path d="M37 33c0-17 9-24 23-24s23 7 23 24z" fill="#26211c"/>
-  <path d="M52 12c4 3 12 3 16 0" stroke="#3b342d" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M37.6 27h44.8v5.4H37.6z" fill="#e0a63a"/>
-  <!-- 모자 띠의 작은 모래시계 -->
-  <path d="M73 27.4h4.6l-2.3 2.3 2.3 2.3H73l2.3-2.3z" fill="#26211c"/>
-  <!-- 앞발 + 모래시계 -->
-  <g transform="translate(60 100)">
-    <path d="M-7-11h14M-7 11h14" stroke="#e0a63a" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M-5.5-10h11c0 5-3.5 7-5.5 10 2 3 5.5 5 5.5 10h-11c0-5 3.5-7 5.5-10-2-3-5.5-5-5.5-10z" fill="#fff6e3" stroke="#e0a63a" stroke-width="1.6"/>
-    <path d="M-3.2-7h6.4c-.7 2-2 3.2-3.2 4.6-1.2-1.4-2.5-2.6-3.2-4.6zM-3.6 9c.6-2.4 2-3.6 3.6-4.4 1.6.8 3 2 3.6 4.4z" fill="#e0a63a"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 300" role="img" aria-labelledby="title desc">
+  <title id="title">몰래 사장</title>
+  <desc id="desc">분홍 코와 금니, 선글라스와 중절모를 쓴 두더지 사장. 초록 앞치마를 두르고 외상 장부와 모래시계를 들고 있다.</desc>
+  <g stroke="#302b24" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="140" cy="286" rx="88" ry="8" fill="#302b24" opacity=".1" stroke="none"/>
+    <path d="M86 254c-17 9-25 25-19 29 10 8 32 4 44-6l6-19m56-4c17 9 25 25 19 29-10 8-32 4-44-6l-6-19" fill="#a78260"/>
+    <path d="M93 167c-29 7-43 39-39 65l32 20h112l28-20c4-26-13-58-41-65" fill="#a78260"/>
+    <path d="m102 161 38 16 38-16 14 101c-30 13-74 13-104 0z" fill="#46715a"/>
+    <path d="m110 164 3 31h54l3-31" fill="none" stroke="#fff4d9" stroke-width="7"/>
+    <rect x="114" y="210" width="54" height="36" rx="5" fill="#fff4d9"/>
+    <path d="M132 219v16m16-16v16m-24-8h32" stroke="#ad382b" stroke-width="3"/>
+    <ellipse cx="140" cy="113" rx="77" ry="65" fill="#a78260"/>
+    <path d="M84 128c-2 28 22 49 56 49s58-21 56-49c-11-20-28-24-56-24s-45 4-56 24" fill="#d1ae83" stroke="none"/>
+    <ellipse cx="85" cy="126" rx="11" ry="6" fill="#de8a84" stroke="none"/>
+    <ellipse cx="195" cy="126" rx="11" ry="6" fill="#de8a84" stroke="none"/>
+    <path d="M75 101h130" fill="none"/>
+    <path d="m84 94 40 1-2 18c-4 11-28 13-34 1zm72 1 40-1-4 20c-6 12-30 10-34-1z" fill="#302b24"/>
+    <path d="M124 101q16-8 32 0" fill="none"/>
+    <path d="m93 100 12-1m61 1 12-1" stroke="#fff4d9" stroke-width="3.5"/>
+    <ellipse cx="140" cy="125" rx="22" ry="14" fill="#de8a84"/>
+    <ellipse cx="133" cy="121" rx="6" ry="3" fill="#f7c4af" stroke="none"/>
+    <path d="M124 149q16 15 33-2" fill="none"/>
+    <path d="m142 153 1 9 10-2-1-10" fill="#e5b853" stroke-width="2.5"/>
+    <path d="m101 132-24-4m23 11-23 5m102-12 24-4m-23 11 23 5" fill="none" stroke-width="2.5"/>
+    <path d="M70 77q-28 9-24 17c9 16 167 16 188-1 10-9-21-16-29-17" fill="#302b24"/>
+    <path d="M86 81 94 27q4-12 17-5l29 11 30-11q13-7 17 5l9 54q-55 13-110 0" fill="#302b24"/>
+    <path d="m90 62-3 18q55 13 109 0l-3-18q-52 13-103 0" fill="#ad382b"/>
+    <path d="m108 40 14 5" stroke="#635448" stroke-width="3"/>
+    <path d="M65 203c-17-6-31 9-24 20 5 7 22 10 34 3" fill="#d1ae83"/>
+    <g transform="rotate(-10 75 226)">
+      <rect x="43" y="203" width="58" height="60" rx="4" fill="#ad382b"/>
+      <path d="M54 204v58" stroke="#e5b853" stroke-width="3"/>
+      <rect x="65" y="217" width="25" height="27" rx="2" fill="#fff4d9" stroke-width="2"/>
+      <path d="M72 225h11m-11 9h11" stroke-width="2"/>
+    </g>
+    <path d="M73 222c-12-10-26-4-26 6 0 13 15 17 28 10" fill="#d1ae83"/>
+    <path d="m50 227 10 2m-9 6 10 1" stroke-width="2"/>
+    <g transform="rotate(12 207 215)">
+      <path d="M192 187h31v9c0 10-11 13-15 18 4 5 15 8 15 18v9h-31v-9c0-10 11-13 15-18-4-5-15-8-15-18z" fill="#fff4d9" stroke-width="3"/>
+      <path d="m198 196 19 0-10 12zm-1 38c2-8 8-10 10-13 3 3 9 5 11 13" fill="#e5b853" stroke="none"/>
+      <path d="M188 186h39m-39 56h39" stroke="#e5b853" stroke-width="7"/>
+    </g>
+    <path d="M212 220c13-13 26-5 23 7-2 11-13 17-25 12" fill="#d1ae83"/>
+    <path d="m225 226 9-1m-10 8 7-1" stroke-width="2"/>
   </g>
-  <ellipse cx="46" cy="101" rx="7" ry="5.5" fill="#ffb3c1"/>
-  <ellipse cx="74" cy="101" rx="7" ry="5.5" fill="#ffb3c1"/>
-  <path d="M41 99.5h3M41 102.5h3M76 99.5h3M76 102.5h3" stroke="#e8899b" stroke-width="1.2" stroke-linecap="round"/>
 </svg>

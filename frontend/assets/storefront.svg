@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 390" role="img" aria-labelledby="title desc">
+  <title id="title">땅굴 끝, 몰래 사장의 시간 구멍가게</title>
+  <desc id="desc">줄무늬 차양 아래 두더지 사장이 장부를 펼쳐 놓은 작은 가게. 선반에는 시간을 담은 병과 시계가 놓여 있다.</desc>
+  <defs>
+    <pattern id="awning" width="66" height="100" patternUnits="userSpaceOnUse"><rect width="66" height="100" fill="#fff4d9"/><rect width="33" height="100" fill="#46715a"/></pattern>
+    <pattern id="dots" width="13" height="13" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#a78260" opacity=".28"/></pattern>
+  </defs>
+  <g stroke="#302b24" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M54 360V183C54 90 152 25 291 25s235 65 235 158v177" fill="#e9d9b8" stroke="none"/>
+    <path d="M54 360V183C54 90 152 25 291 25s235 65 235 158v177" fill="url(#dots)" stroke="none"/>
+    <path d="M104 346V177c0-89 79-129 187-129s186 40 186 129v169" fill="#6d5140"/>
+    <path d="M143 160h295v159H143z" fill="#3f4738"/>
+    <path d="M155 220h270m-270 60h270" stroke="#a78260" stroke-width="8"/>
+    <g fill="#d9d29a"><path d="M169 177h22v33h-22z"/><path d="M172 171h16v6h-16z" fill="#e5b853"/><path d="M202 182h25v28h-25z" fill="#de8a84"/><path d="M205 176h19v6h-19z" fill="#fff4d9"/><path d="M391 178h21v32h-21z"/><path d="M394 172h15v6h-15z" fill="#e5b853"/><path d="M172 243h18v25h-18z" fill="#de8a84"/><path d="M201 238h20v30h-20z"/></g>
+    <circle cx="348" cy="187" r="22" fill="#fff4d9"/>
+    <path d="M348 171v16l9 5" fill="none"/>
+    <path d="M100 114h382l21 44c-8 17-24 17-33 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0-9 17-25 17-34 0z" fill="url(#awning)"/>
+    <rect x="125" y="61" width="329" height="60" rx="7" fill="#ad382b"/>
+    <rect x="133" y="69" width="313" height="44" rx="3" fill="none" stroke="#edb19b" stroke-width="1"/>
+    <path d="M146 88h12m-6-6v12m268-6h12m-6-6v12" stroke="#fff4d9" stroke-width="2"/>
+    <text x="290" y="100" text-anchor="middle" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" font-size="29" font-weight="900" letter-spacing="7" fill="#fff4d9" stroke="none">시간 암시장</text>
+    <g transform="translate(199 149)">
+      <path d="M36 115c-16 3-29 21-32 50h141c-2-29-17-47-33-50" fill="#46715a"/>
+      <path d="m49 115 8 22h37l6-22" fill="none" stroke="#fff4d9" stroke-width="6"/>
+      <ellipse cx="74" cy="72" rx="59" ry="52" fill="#a78260"/>
+      <ellipse cx="74" cy="92" rx="42" ry="31" fill="#d1ae83" stroke="none"/>
+      <path d="M22 62h104"/><path d="m30 56 29 1-1 13q-10 14-25 0zm59 1 29-1-3 14q-15 14-25 0z" fill="#302b24"/>
+      <path d="M59 62q15-5 30 0" fill="none"/>
+      <path d="m36 62 9-1m51 1 9-1" stroke="#fff4d9" stroke-width="2.5"/>
+      <ellipse cx="74" cy="84" rx="17" ry="11" fill="#de8a84"/>
+      <path d="M62 102q12 12 25-1" fill="none"/>
+      <path d="m76 107 1 7 7-1-1-8" fill="#e5b853" stroke-width="2"/>
+      <path d="m42 87-17-3m17 9-18 3m82-9 17-3m-17 9 18 3" fill="none" stroke-width="2"/>
+      <path d="M20 43c-29 4-20 13-6 15 36 6 98 8 127-2 14-5 7-10-11-13" fill="#302b24"/>
+      <path d="m32 44 7-35q2-8 11-4l24 8 23-8q9-4 11 4l8 35" fill="#302b24"/>
+      <path d="M34 32q40 10 80 0v12q-40 9-82 0z" fill="#ad382b"/>
+    </g>
+    <path d="M93 315h399v33H93z" fill="#a78260"/>
+    <path d="M108 348h369v24H108z" fill="#6d5140"/>
+    <path d="M218 305q32-12 63 1v15q-31-11-63-1zm63 1q32-13 63-1v15q-31-9-63 1z" fill="#fff4d9" stroke-width="2.5"/>
+    <path d="m231 310 36 1m30 0 33-2" stroke-width="1.5"/>
+    <ellipse cx="226" cy="307" rx="15" ry="9" fill="#d1ae83"/>
+    <path d="m219 305 1 6m5-7 1 7" stroke-width="1.5"/>
+    <ellipse cx="337" cy="307" rx="15" ry="9" fill="#d1ae83"/>
+    <path d="m337 304-1 7m6-6-1 6" stroke-width="1.5"/>
+    <g transform="rotate(7 421 261)">
+      <path d="M393 224h56v76h-56z" fill="#fff4d9"/>
+      <path d="m398 235 46 0" stroke="#ad382b" stroke-width="9"/>
+      <text x="421" y="263" text-anchor="middle" font-family="'Apple SD Gothic Neo',sans-serif" font-size="12" font-weight="800" fill="#302b24" stroke="none">외상장부</text>
+      <path d="m406 275 29 0m-29 8h22" stroke-width="1.5"/>
+    </g>
+    <g transform="rotate(-9 101 244)">
+      <path d="m94 203 16 0 18 45H76z" fill="#e5b853"/>
+      <rect x="64" y="237" width="76" height="38" rx="3" fill="#fff4d9"/>
+      <text x="102" y="262" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="19" font-weight="700" fill="#ad382b" stroke="none">OPEN</text>
+    </g>
+    <path d="M40 373h498" stroke-width="3"/>
+    <path d="m44 188-13-6m12 18-19 2m496-10 15-9m-13 22 19 2" stroke="#a78260" stroke-width="2.5"/>
+    <path d="m510 294 3-9 3 9 9 3-9 3-3 9-3-9-9-3z" fill="#e5b853" stroke="none"/>
+    <path d="m62 107 3-9 3 9 9 3-9 3-3 9-3-9-9-3z" fill="#ad382b" stroke="none"/>
+  </g>
+</svg>

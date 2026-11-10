@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>시간 암시장 · 구멍가게 디자인 보드</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="shop-theme.css" />
+  <style>
+    .board-top { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; border-bottom: 1.5px solid var(--text); gap: 16px; }
+    .board-top a { font-size: 12px; text-underline-offset: 5px; }
+    .board-kicker { font: 10px var(--mono); letter-spacing: .14em; color: var(--gold); }
+    .board-intro { padding: 42px 0 32px; }
+    .board-intro h1 { font: 400 clamp(34px, 5vw, 58px)/1.3 var(--display); letter-spacing: -.04em; margin: 12px 0; }
+    .board-intro p { color: var(--text-2); line-height: 1.9; font-size: 13px; }
+    .board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .board-card { min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 25px; background: var(--surface); }
+    .board-card h2 { font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; }
+    .board-card h2 span { font: 9px var(--mono); color: var(--muted); }
+    .brand-sample { min-height: 215px; display: flex; gap: 25px; align-items: center; justify-content: center; }
+    .brand-sample > img { width: 83px; height: 83px; }
+    .brand-sample .wordmark-main { font-size: 36px; }
+    .sign-sample { background: #e9d9b8; padding: 35px 25px; border-radius: 5px; }
+    .sign-sample img { width: 100%; display: block; }
+    .board-caption { font-size: 11px; color: var(--text-2); margin-top: 15px; line-height: 1.8; }
+    .character-display { display: flex; justify-content: center; align-items: center; gap: 15px; min-height: 310px; }
+    .character-display img { width: 215px; height: 230px; object-fit: contain; }
+    .character-display .speech { font-size: 11px; max-width: 160px; transform: rotate(3deg); }
+    .character-display .speech::before { display: none; }
+    .character-notes { display: flex; gap: 6px; flex-wrap: wrap; }
+    .character-notes span { border: 1px solid var(--border); padding: 3px 7px; font-size: 10px; border-radius: 3px; }
+    .shop-display { display: flex; align-items: center; min-height: 310px; }
+    .shop-display img { width: 100%; }
+    .palette { grid-column: 1 / -1; }
+    .swatches { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+    .color-chip { height: 70px; background: var(--swatch); border: 1px solid #302b2433; border-radius: 4px; }
+    .swatch-name { font-size: 11px; font-weight: 700; margin-top: 9px; }
+    .swatch-value { font: 10px var(--mono); color: var(--muted); margin-top: 4px; }
+    .sample-components { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-top: 27px; min-height: 60px; }
+    .type-display { font: 400 36px/1.5 var(--display); color: var(--gold); margin-top: 22px; }
+    .type-body { font-size: 13px; line-height: 2; margin: 10px 0; }
+    .type-mono { font: 600 27px var(--mono); }
+    .sample-receipt { margin: 22px auto 15px; max-width: 270px; }
+    .board-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--text); font-size: 10px; color: var(--muted); }
+    @media(max-width: 700px) { .board-grid { grid-template-columns: 1fr; } .palette { grid-column: auto; } .swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); } .character-display { gap: 0; } .character-display img { width: 60%; height: auto; } .brand-sample { gap: 15px; } .brand-sample > img { width: 60px; height: 60px; } .brand-sample .wordmark-main { font-size: 27px; } }
+  </style>
+</head>
+<body>
+  <header class="board-top"><a class="brand" href="index.html"><span class="brand-symbol" aria-hidden="true"><img src="assets/mollae.png" alt="" /></span><span class="wordmark"><span class="wordmark-main">시간 암시장<span class="brand-star">✳</span></span><span class="wordmark-sub">VISUAL IDENTITY · DESIGN BOARD 02 · SELECTED</span></span></a><a href="index.html">가게 들어가기 ↗</a></header>
+  <main>
+    <div class="board-intro"><span class="board-kicker">A LITTLE SHADY. A LOT OF HEART.</span><h1>수상하지만, 정 많은<br />두더지 사장의 구멍가게.</h1><p>미래의 시간을 외상으로 달아주는 작은 땅굴 가게.<br />낡은 간판과 종이 장부, 능청스러운 몰래 사장이 미룬 일을 조금 가볍게 만듭니다.</p></div>
+    <div class="board-grid">
+      <section class="board-card"><h2>01. 로고 <span>PRIMARY LOCKUP</span></h2><div class="brand-sample"><img src="assets/logo.svg" alt="두더지 사장 심벌" /><span class="wordmark"><span class="wordmark-main">시간 암시장<span class="brand-star">✳</span></span><span class="wordmark-sub">TIME BLACK MARKET · 몰래 사장의 구멍가게</span></span></div><p class="board-caption">땅굴 입구 안에서 고개를 내민 몰래 사장. 작은 크기에서는 심벌만 사용해요.</p></section>
+      <section class="board-card"><h2>02. 가게 간판 <span>SIGNBOARD</span></h2><div class="brand-sample sign-sample"><img src="assets/wordmark.svg" alt="적갈색 바탕에 크림색 글씨로 쓰인 시간 암시장 간판" style="width:100%;height:auto" /></div><p class="board-caption">빛바랜 적갈색 간판, 넉넉한 자간, 양옆의 작은 반짝임. 가게의 첫인상이에요.</p></section>
+      <section class="board-card"><h2>03. 몰래 사장 <span>MEET MOLLAE</span></h2><div class="character-display"><img src="assets/mollae.png" alt="선택된 캐릭터: 장부를 들고 손을 내미는 통통한 두더지 몰래 사장" /><p class="speech">“외상? 달아는 줄게.<br />미래의 너랑 얘기는 됐고?”</p></div><div class="character-notes"><span>중절모 + 선글라스</span><span>분홍 코 + 금니</span><span>초록 앞치마</span><span>소품은 장부 하나</span></div><p class="board-caption">선택된 레트로 능청형. 통통한 체형과 긴 주둥이, 손 내미는 자세를 그대로 사용해요.</p></section>
+      <section class="board-card"><h2>04. 평면 장부 UI <span>SELECTED DIRECTION</span></h2><div class="shop-display" style="flex-direction:column;justify-content:center;gap:20px"><div class="ledger-card" style="width:100%;min-height:0"><p class="eyebrow">지금 장부에 달린 외상 · 표시 예시</p><p class="big">2시간 30분</p><span class="chip-stat">남은 일 3개</span></div><p class="speech">캐릭터는 개성 있게,<br />장부와 입력 영역은 정돈되게.</p></div><p class="board-caption">종이 질감과 얕은 그림자. 목재 테두리와 황동 장식은 덜어내고 차양과 도장으로 가게의 무드만 남겨요.</p></section>
+      <section class="board-card palette"><h2>05. 가게의 색 <span>COLOR PALETTE</span></h2><div class="swatches">
+        <div><div class="color-chip" style="--swatch:#f4eddd"></div><p class="swatch-name">장부 종이</p><p class="swatch-value">#F4EDDD</p></div>
+        <div><div class="color-chip" style="--swatch:#ad382b"></div><p class="swatch-name">적갈색 간판</p><p class="swatch-value">#AD382B</p></div>
+        <div><div class="color-chip" style="--swatch:#46715a"></div><p class="swatch-name">초록 차양</p><p class="swatch-value">#46715A</p></div>
+        <div><div class="color-chip" style="--swatch:#e5b853"></div><p class="swatch-name">금니와 동전</p><p class="swatch-value">#E5B853</p></div>
+        <div><div class="color-chip" style="--swatch:#de8a84"></div><p class="swatch-name">두더지 코</p><p class="swatch-value">#DE8A84</p></div>
+        <div><div class="color-chip" style="--swatch:#302b24"></div><p class="swatch-name">장부 잉크</p><p class="swatch-value">#302B24</p></div>
+      </div></section>
+      <section class="board-card"><h2>06. 글씨와 말투 <span>TYPOGRAPHY & VOICE</span></h2><p class="type-display">외상은 달아도,<br />마음은 가볍게!</p><p class="type-body">본문은 읽기 편한 Noto Sans KR.<br />시간과 날짜는 IBM Plex Mono로 또박또박.</p><p class="type-mono">02h 30m <span style="font-size:12px;color:var(--muted)">TIME DEBT</span></p><p class="board-caption">제목: Black Han Sans · 본문: Noto Sans KR · 숫자: IBM Plex Mono<br />사장님은 능청스러운 반말, 시스템 안내는 친절한 존댓말.</p></section>
+      <section class="board-card"><h2>07. 종이와 도장 <span>UI INGREDIENTS · SAMPLE</span></h2><div class="sample-components"><span class="status-dot ok"><i aria-hidden="true"></i>영업 중</span><span class="paper-label">몰래 사장 접수처</span><span class="task-est">45분</span></div><div class="debt-box sample-receipt"><span class="receipt-topline">TIME BLACK MARKET · RECEIPT</span><p class="eyebrow">오늘 달아둔 외상 · 표시 예시</p><p class="big">2시간 30분</p><p class="muted small">세 가지 미룬 일의 예상 시간</p><p class="note small">✓ 하나씩 체크하면 외상이 지워져요.</p></div><p class="board-caption">실선은 구조, 점선은 종이의 절취선. 그림자는 얕고 부드럽게, 도장은 살짝 비뚤게.</p></section>
+    </div>
+  </main>
+  <footer class="board-footer">시간 암시장 · 디자인 인계용 보드 · 선택 캐릭터는 투명 PNG, 간판·파비콘은 SVG입니다. 앱의 모든 텍스트와 컨트롤은 HTML/CSS로 구현했습니다.</footer>
+</body>
+</html>

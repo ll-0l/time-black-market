@@ -3,35 +3,62 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Time Black Market</title>
+  <title>시간 암시장 — 몰래 사장의 시간 구멍가게</title>
   <meta name="description" content="오늘 못 한 일을 미래의 시간에서 외상으로 당겨 쓰고, 몰래 사장과 함께 갚아나가는 시간 외상 장부" />
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="shop-theme.css" />
   <script>
     try { const t = localStorage.getItem("tbm-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">본문으로 바로가기</a>
   <div id="server-banner" class="banner" hidden role="status" aria-live="polite"></div>
 
   <header class="topbar">
     <a class="brand" href="#today" aria-label="Time Black Market 홈">
-      <img class="logo" src="assets/logo.svg" alt="" width="40" height="40" />
+      <span class="brand-symbol" aria-hidden="true"><img src="assets/mollae.png" alt="" width="80" height="80" /></span>
       <span class="wordmark">
-        <span class="wordmark-main">TIME BLACK MARKET</span>
-        <span class="wordmark-sub">몰래 사장의 시간 암시장 · 오늘 편했던 만큼, 미래의 나는 바빠진다</span>
+        <span class="wordmark-main">시간 암시장<span class="brand-star" aria-hidden="true">✳</span></span>
+        <span class="wordmark-sub">TIME BLACK MARKET</span>
       </span>
     </a>
+  <nav class="tabs" role="tablist" aria-label="화면 전환">
+    <button class="tab" role="tab" id="tab-today" aria-controls="panel-today" aria-selected="true"><span class="tab-number" aria-hidden="true">01</span>오늘 할 일</button>
+    <button class="tab" role="tab" id="tab-calendar" aria-controls="panel-calendar" aria-selected="false"><span class="tab-number" aria-hidden="true">02</span>캘린더</button>
+    <button class="tab" role="tab" id="tab-chat" aria-controls="panel-chat" aria-selected="false"><span class="tab-number" aria-hidden="true">03</span>사장님 상담</button>
+    <button class="tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false"><span class="tab-number" aria-hidden="true">04</span>외상 장부</button>
+    <button class="tab" role="tab" id="tab-insight" aria-controls="panel-insight" aria-selected="false"><span class="tab-number" aria-hidden="true">05</span>장부 분석</button>
+  </nav>
     <div class="topbar-actions">
-      <span id="server-status" class="status-dot" title="서버 확인 중"><i></i><span class="sr">서버 확인 중</span></span>
+      <span id="server-status" class="status-dot" title="장부 연결 중" role="status" aria-live="polite"><i aria-hidden="true"></i><span data-server-label>장부 연결 중</span></span>
       <button id="theme-toggle" class="icon-btn" type="button" aria-label="다크 모드 전환" title="다크 모드 전환">
         <span class="theme-icon" aria-hidden="true"></span>
       </button>
     </div>
   </header>
+
+  <div class="shop-layout">
+    <aside class="shopkeeper" aria-label="몰래 사장의 구멍가게">
+      <div class="shopkeeper-booth">
+        <div class="shop-awning" aria-hidden="true"></div>
+        <p class="shopkeeper-sign">시간 외상 받습니다</p>
+        <img class="shopkeeper-character" src="assets/mollae.png" alt="빨간 장부를 끼고 손님을 반기는 통통한 두더지 몰래 사장" width="1254" height="1254" fetchpriority="high" />
+        <div class="shopkeeper-counter"><span class="counter-star" aria-hidden="true">✳</span><div><strong>몰래 사장</strong><span>땅굴 구멍가게 주인</span></div><span class="counter-star" aria-hidden="true">✳</span></div>
+      </div>
+      <div class="shopkeeper-quote"><span class="quote-mark" aria-hidden="true">“</span><p>한 번에 다 갚으려 하지 마.<br /><b>하나씩 해도 단골이지.</b></p><span class="quote-signature">— 몰래 사장</span></div>
+      <p class="shopkeeper-footnote">미래의 나와 거래하는 곳<br /><span>THE LITTLE SHOP OF BORROWED TIME</span></p>
+    </aside>
+
+    <div class="shop-workspace">
+      <section class="workspace-welcome" aria-labelledby="shop-title">
+        <div><p class="welcome-kicker">어서 와요, 오늘도 잘 오셨어요.</p><h1 id="shop-title">미룬 일도, <span>하나씩 갚아가요.</span></h1><p class="welcome-description">오늘 못 한 일, 몰래 사장에게 맡겨요.</p></div>
+        <span class="welcome-seal" aria-hidden="true">외상은 달아도<br /><b>마음은 가볍게!</b></span>
+      </section>
 
   <!-- 데이터 요약: AI 시스템 프롬프트에 주입되는 값과 동일 -->
   <section class="overview" aria-label="데이터 요약">
@@ -43,31 +70,26 @@
     </div>
   </section>
 
-  <nav class="tabs" role="tablist" aria-label="화면 전환">
-    <button class="tab" role="tab" id="tab-today" aria-controls="panel-today" aria-selected="true">오늘 할 일</button>
-    <button class="tab" role="tab" id="tab-calendar" aria-controls="panel-calendar" aria-selected="false">캘린더</button>
-    <button class="tab" role="tab" id="tab-chat" aria-controls="panel-chat" aria-selected="false">사장님 상담</button>
-    <button class="tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false">외상 장부</button>
-    <button class="tab" role="tab" id="tab-insight" aria-controls="panel-insight" aria-selected="false">장부 분석</button>
-  </nav>
 
-  <main>
+
+  <main id="main-content" tabindex="-1">
     <!-- ============ 오늘 할 일 ============ -->
     <section id="panel-today" class="panel" role="tabpanel" aria-labelledby="tab-today">
       <div class="today-layout">
         <div class="box tasks-box">
+          <div class="shop-section-head"><div><p class="eyebrow">TODAY’S TAB</p><h2>오늘은 뭘 달아둘까요?</h2></div><span class="paper-label">몰래 사장 접수처</span></div>
           <form id="task-form" class="task-form" autocomplete="off">
             <label for="task-title" class="sr">해야 할 일</label>
-            <input id="task-title" maxlength="100" placeholder="미룰 것 같은 일을 맡겨보세요 (예: 주간 보고서 작성)" required />
-            <button id="task-estimate" class="btn btn-primary" type="submit">사장님, 감정해줘요</button>
+            <input id="task-title" maxlength="100" placeholder="오늘 미룬 일을 적어주세요" required />
+            <button id="task-estimate" class="btn btn-primary" type="submit">사장님, 감정해줘요 <span aria-hidden="true">↗</span></button>
           </form>
           <div id="estimate-box" class="estimate-box" hidden aria-live="polite"></div>
 
           <div class="tasks-head">
-            <h3>남은 일 <span id="open-count" class="muted small"></span></h3>
-            <span class="muted small">끝낸 일은 체크하고 실제 걸린 시간을 적으면 외상이 지워져요</span>
+            <h3>아직 장부에 남은 일 <span id="open-count" class="muted small"></span></h3>
+            <span class="muted small">다 한 일은 체크해서 외상을 갚아요.</span>
           </div>
-          <ul id="open-tasks" class="task-list"></ul>
+          <ul id="open-tasks" class="task-list"><li class="empty">사장님이 장부를 꺼내고 있어요…</li></ul>
 
           <details class="done-section" id="done-section">
             <summary>오늘 갚은 외상 <span id="done-count" class="muted small"></span></summary>
@@ -77,13 +99,15 @@
 
         <aside class="today-side">
           <div class="box debt-box">
+            <span class="receipt-topline" aria-hidden="true">TIME BLACK MARKET · RECEIPT</span>
             <p class="eyebrow">오늘 달아둔 외상</p>
             <p class="big" id="today-debt">-</p>
             <p class="muted small" id="today-debt-sub">남은 일의 예상 시간을 더한 외상값이에요</p>
             <div class="debt-bar" id="debt-bar" aria-hidden="true"></div>
             <p class="note small">✓ 장부에 자동 기록 · 캘린더와 사장님 상담에 바로 반영돼요</p>
           </div>
-          <div class="box accuracy-box" id="accuracy-box"></div>
+          <div class="box accuracy-box" id="accuracy-box"><p class="eyebrow">내 예측 습관</p><p class="small muted">장부를 살펴보고 있어요.</p></div>
+          <div class="receipt-bottom"><span class="receipt-mark" aria-hidden="true">✳</span><p>미뤘어도 괜찮아요.<br />오늘 하나부터 갚아봐요.</p><span>— 몰래 사장</span></div>
         </aside>
       </div>
     </section>
@@ -126,7 +150,7 @@
       <div class="box chat">
         <div class="chat-head">
           <h3 id="chat-title">새 대화</h3>
-          <span class="merchant-tag"><img src="assets/mollae.svg" alt="" />몰래 사장 · 24시간 영업 중</span>
+          <span class="merchant-tag"><span class="merchant-portrait" aria-hidden="true"><img src="assets/mollae.png" alt="" /></span>몰래 사장 · 24시간 영업 중</span>
         </div>
         <div id="messages" class="messages" aria-live="polite"></div>
         <div class="quick" id="quick-questions">
@@ -223,10 +247,13 @@
       </div>
     </section>
   </main>
+    </div>
+  </div>
 
   <footer class="footer">
-    <span class="muted small">© 몰래 사장의 Time Black Market · 시간은 외상으로, 갚을 땐 기분 좋게 · FastAPI · Firestore · GPT</span>
-    <a id="docs-link" class="small" href="#" target="_blank" rel="noopener">API 문서</a>
+    <div class="footer-brand"><span class="brand-symbol" aria-hidden="true"><img src="assets/mollae.png" alt="" /></span><span>시간 암시장<span class="footer-en">TIME BLACK MARKET</span></span></div>
+    <span class="muted small">오늘 편했던 만큼, 미래의 나는 바빠진다.</span>
+    <a id="docs-link" class="small" href="#" target="_blank" rel="noopener">API 문서 ↗</a>
   </footer>
 
   <div id="tooltip" class="tooltip" hidden></div>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>몰래 사장 · 캐릭터 후보 5종</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4eddd; color: #302b24; padding: 42px; font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+    header { max-width: 1600px; margin: 0 auto 30px; border-bottom: 1px solid #cfc2a9; padding-bottom: 22px; }
+    .kicker { font-size: 11px; letter-spacing: .14em; color: #ad382b; }
+    h1 { font-size: 29px; letter-spacing: -.045em; margin: 12px 0; }
+    header p { font-size: 13px; color: #655c4e; line-height: 1.8; margin-bottom: 0; }
+    main { max-width: 1600px; margin: auto; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 15px; }
+    article { min-width: 0; border: 1px solid #cfc2a9; background: #fffaf0; border-radius: 10px; overflow: hidden; }
+    .art { padding: 17px 8px 8px; display: block; }
+    img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
+    .info { padding: 18px; border-top: 1px dashed #cfc2a9; }
+    .num { font: 12px monospace; color: #ad382b; }
+    h2 { font-size: 17px; margin: 8px 0; letter-spacing: -.035em; }
+    article p { margin: 0; font-size: 12px; color: #655c4e; line-height: 1.8; }
+    .download { font-size: 11px; display: inline-block; margin-top: 16px; color: #46715a; text-underline-offset: 4px; }
+    footer { max-width: 1600px; margin: 22px auto 0; color: #746a5b; font-size: 11px; line-height: 1.8; }
+    a:focus-visible { outline: 3px solid #ad382b; outline-offset: 3px; }
+    @media (max-width:1000px) { main { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+    @media (max-width:600px) { body { padding: 24px 18px; } main { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; } .info { padding: 14px; } h1 { font-size: 25px; } h2 { font-size: 15px; } }
+    @media (max-width:360px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header><span class="kicker">TIME BLACK MARKET · MOLLAE EXPLORATIONS</span><h1>몰래 사장, 어떤 인상이 좋을까요?</h1><p>모자와 안경 사이에 여백을 주고, 얼굴과 몸의 비율을 정리했습니다.<br />소품은 장부 하나. 기존 가게의 색과 사장님의 능청스러움은 이어갑니다.</p></header>
+  <main>
+    <article><a class="art" href="mollae-01.png"><img src="mollae-01.png" alt="후보 1: 둥근 얼굴과 짧은 몸, 장부를 들고 손을 흔드는 몰래 사장" /></a><div class="info"><span class="num">01</span><h2>동글 단골형</h2><p>둥근 얼굴과 편안한 미소.<br />가장 친근한 기본형.</p><a class="download" href="mollae-01.png" download>투명 PNG 원본 ↗</a></div></article>
+    <article><a class="art" href="mollae-02.png"><img src="mollae-02.png" alt="후보 2: 긴 두더지 주둥이와 기울어진 모자, 능청스러운 미소의 레트로 사장" /></a><div class="info"><span class="num">02</span><h2>레트로 능청형</h2><p>두더지다운 긴 주둥이.<br />정 많은 동네 사장님.</p><a class="download" href="mollae-02.png" download>투명 PNG 원본 ↗</a></div></article>
+    <article><a class="art" href="mollae-03.png"><img src="mollae-03.png" alt="후보 3: 간단한 반달 선글라스와 땅콩 모양의 통통한 실루엣" /></a><div class="info"><span class="num">03</span><h2>미니멀 땅콩형</h2><p>선과 형태를 가장 단순하게.<br />작은 아바타에도 또렷하게.</p><a class="download" href="mollae-03.png" download>투명 PNG 원본 ↗</a></div></article>
+    <article><a class="art" href="mollae-04.png"><img src="mollae-04.png" alt="후보 4: 길쭉한 체형에 긴 초록 앞치마를 두르고 장부를 안은 몰래 사장" /></a><div class="info"><span class="num">04</span><h2>느긋한 장부형</h2><p>길쭉한 체형과 여유로운 자세.<br />노련한 장부 전문가.</p><a class="download" href="mollae-04.png" download>투명 PNG 원본 ↗</a></div></article>
+    <article><a class="art" href="mollae-05.png"><img src="mollae-05.png" alt="후보 5: 말랑한 무광 입체 피규어로 표현한 몰래 사장" /></a><div class="info"><span class="num">05</span><h2>말랑 피규어형</h2><p>매끈한 무광 입체감.<br />장난감처럼 묵직하고 귀엽게.</p><a class="download" href="mollae-05.png" download>투명 PNG 원본 ↗</a></div></article>
+  </main>
+  <footer>각 후보는 1254 × 1254px 투명 배경 PNG입니다. 이미지 생성 도구: 내장 image_gen. 프롬프트 기록: <a href="prompts.json">prompts.json</a>.</footer>
+</body>
+</html>

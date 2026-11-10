@@ -150,7 +150,7 @@ function renderEstimate({ loading = false, error = "" } = {}) {
   box.innerHTML = `
     <p class="estimate-title"><b>${title}</b> 예상 소요 시간</p>
     ${error ? `<p class="form-msg err">${escapeHtml(error)}</p>` : ""}
-    ${est ? `<p class="merchant-say"><img src="assets/mollae.svg" alt="몰래 사장" /><span>${escapeHtml(est.reason)}${est.history_used ? `<em> · 손님 완료 기록 ${est.history_used}건 참고</em>` : ""}</span></p>` : ""}
+    ${est ? `<p class="merchant-say"><span class="merchant-portrait" aria-hidden="true"><img src="assets/mollae.png" alt="" /></span><span>${escapeHtml(est.reason)}${est.history_used ? `<em> · 손님 완료 기록 ${est.history_used}건 참고</em>` : ""}</span></p>` : ""}
     <div class="opts">${options}
       <label class="opt opt-custom ${est && !est.options.some((o) => o.minutes === state.chosen) ? "active" : ""}">
         <span class="opt-label">직접 입력</span>

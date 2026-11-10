@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" role="img" aria-labelledby="title">
+  <title id="title">시간 암시장 / Time Black Market 간판형 로고</title>
+  <rect x="4" y="4" width="592" height="152" rx="12" fill="#ad382b" stroke="#302b24" stroke-width="4"/>
+  <rect x="14" y="14" width="572" height="132" rx="6" fill="none" stroke="#fff4d9" stroke-opacity=".55"/>
+  <g fill="#fff4d9" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" text-anchor="middle">
+    <text x="300" y="91" font-size="64" font-weight="900" letter-spacing="12">시간 암시장</text>
+    <text x="300" y="126" font-size="12" font-weight="600" letter-spacing="5">TIME BLACK MARKET</text>
+  </g>
+  <path d="M38 71h24m-12-12v24m488-12h24m-12-12v24" stroke="#e5b853" stroke-width="3" stroke-linecap="round"/>
+</svg>

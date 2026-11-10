@@ -58,11 +58,20 @@ const kindOf = (r) => (r.change === null ? "first" : r.change > 0 ? "up" : r.cha
 
 /* ================= 테마 ================= */
 function initTheme() {
+  const toggle = $("#theme-toggle");
+  const updateLabel = () => {
+    const dark = document.documentElement.dataset.theme === "dark" ||
+      (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+    toggle.setAttribute("aria-label", dark ? "밝은 가게로 전환" : "밤의 가게로 전환");
+    toggle.title = toggle.getAttribute("aria-label");
+  };
+  updateLabel();
   $("#theme-toggle").addEventListener("click", () => {
     const root = document.documentElement;
     const current = root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const next = current === "dark" ? "light" : "dark";
     root.dataset.theme = next;
+    updateLabel();
     try { localStorage.setItem("tbm-theme", next); } catch (e) { /* noop */ }
     if (!$("#panel-insight").hidden) renderInsightCharts();
   });
@@ -73,13 +82,29 @@ function selectTab(id) {
   document.querySelectorAll(".tab").forEach((t) => {
     const on = t.id === id;
     t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
     $(`#${t.getAttribute("aria-controls")}`).hidden = !on;
   });
   if (id === "tab-insight") loadInsight();
   try { localStorage.setItem("tbm-tab", id); } catch (e) { /* noop */ }
 }
 function initTabs() {
-  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => selectTab(t.id)));
+  const tabs = [...document.querySelectorAll(".tab")];
+  tabs.forEach((t) => {
+    t.tabIndex = t.getAttribute("aria-selected") === "true" ? 0 : -1;
+    t.addEventListener("click", () => selectTab(t.id));
+    t.addEventListener("keydown", (evt) => {
+      const index = tabs.indexOf(t);
+      const target = evt.key === "ArrowRight" ? (index + 1) % tabs.length :
+        evt.key === "ArrowLeft" ? (index - 1 + tabs.length) % tabs.length :
+        evt.key === "Home" ? 0 : evt.key === "End" ? tabs.length - 1 : null;
+      if (target === null) return;
+      evt.preventDefault();
+      selectTab(tabs[target].id);
+      tabs[target].focus();
+    });
+  });
+  $(".brand").addEventListener("click", () => selectTab("tab-today"));
   let saved = location.hash ? `tab-${location.hash.slice(1)}` : null;
   if (!saved) {
     try { saved = localStorage.getItem("tbm-tab"); } catch (e) { /* noop */ }
@@ -104,6 +129,7 @@ async function wakeServer() {
         await api.health(15000);
         status.className = "status-dot ok";
         status.title = "서버 연결됨";
+        status.querySelector("[data-server-label]").textContent = "영업 중";
         banner.hidden = true;
         return true;
       } catch (e) {
@@ -112,6 +138,7 @@ async function wakeServer() {
     }
     status.className = "status-dot bad";
     status.title = "서버 연결 실패";
+    status.querySelector("[data-server-label]").textContent = "연결 확인";
     banner.hidden = false;
     banner.textContent = "⚠️ 서버에 연결하지 못했어요. 잠시 후 새로고침해 주세요.";
     return false;
@@ -344,7 +371,7 @@ function newChat() {
   $("#quick-questions").hidden = false;
   $("#messages").innerHTML = `
     <div class="welcome">
-      <img class="merchant-hero" src="assets/mollae.svg" alt="몰래 사장" />
+      <img class="merchant-hero" src="assets/mollae.png" alt="몰래 사장" width="160" height="160" />
       <p class="speech">${escapeHtml(greeting())}</p>
       <p class="small muted">몰래 사장은 내 장부 요약을 보고 답해요. 필요하면 날짜별 기록이나 지난 대화도 직접 뒤져봐요.</p>
     </div>`;
@@ -398,7 +425,7 @@ function appendMessage(role, content, tools = [], { error = false } = {}) {
     // 몰래 사장 아바타 + 말풍선
     row = document.createElement("div");
     row.className = "msg-row";
-    row.innerHTML = '<img class="avatar" src="assets/mollae.svg" alt="몰래 사장" />';
+    row.innerHTML = '<span class="avatar" role="img" aria-label="몰래 사장"><img src="assets/mollae.png" alt="" /></span>';
     row.appendChild(div);
   }
   div.innerHTML = renderRichText(content);
@@ -423,7 +450,7 @@ function showTyping() {
   const box = $("#messages");
   const div = document.createElement("div");
   div.className = "msg-row";
-  div.innerHTML = '<img class="avatar" src="assets/mollae.svg" alt="" /><div class="msg assistant"><span class="typing"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">몰래 사장이 장부를 뒤적이는 중…</span></span></div>';
+  div.innerHTML = '<span class="avatar" aria-hidden="true"><img src="assets/mollae.png" alt="" /></span><div class="msg assistant"><span class="typing"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">몰래 사장이 장부를 뒤적이는 중…</span></span></div>';
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
   const started = Date.now();
