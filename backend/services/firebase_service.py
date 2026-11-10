@@ -2,11 +2,10 @@ import json
 import os
 
 import firebase_admin
-from dotenv import load_dotenv
 from firebase_admin import credentials, firestore
 
-
-load_dotenv()
+import backend.core.config  # noqa: F401  (.env 로딩 보장)
+from backend.core.exceptions import ExternalServiceError
 
 
 def initialize_firebase():
@@ -22,7 +21,7 @@ def initialize_firebase():
 
     elif service_account_path:
         if not os.path.exists(service_account_path):
-            raise FileNotFoundError(
+            raise ExternalServiceError(
                 f"Firebase 서비스 계정 파일을 찾을 수 없습니다: "
                 f"{service_account_path}"
             )
@@ -30,7 +29,7 @@ def initialize_firebase():
         cred = credentials.Certificate(service_account_path)
 
     else:
-        raise RuntimeError(
+        raise ExternalServiceError(
             "Firebase 인증 정보가 설정되지 않았습니다. "
             "FIREBASE_SERVICE_ACCOUNT_PATH 또는 "
             "FIREBASE_SERVICE_ACCOUNT_JSON을 설정하세요."
