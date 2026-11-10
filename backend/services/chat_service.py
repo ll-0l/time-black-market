@@ -37,8 +37,8 @@ def _max_tokens() -> int:
 
 
 def _reasoning_effort() -> Optional[str]:
-    """추론 모델의 생각 강도(minimal/low/medium/high). 비우면 보내지 않음."""
-    return os.getenv("OPENAI_REASONING_EFFORT", "low").strip() or None
+    """추론 모델의 생각 강도(minimal/low/medium/high). 비우면 보내지 않음 (Codyssey 게이트웨이는 미지원)."""
+    return os.getenv("OPENAI_REASONING_EFFORT", "").strip() or None
 
 
 def _client() -> OpenAI:
