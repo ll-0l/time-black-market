@@ -137,7 +137,7 @@ function renderEstimate({ loading = false, error = "" } = {}) {
   box.hidden = false;
   const title = escapeHtml(state.estimate?.title ?? $("#task-title").value.trim());
   if (loading) {
-    box.innerHTML = `<p class="typing"><span class="dots"><i></i><i></i><i></i></span> 몰래 사장이 ‘${title}’에 얼마나 빌려줄지 감정하는 중…</p>`;
+    box.innerHTML = `<p class="typing"><span class="dots"><i></i><i></i><i></i></span> 몰래 사장이 ‘${title}’ 외상값을 셈해보는 중…</p>`;
     return;
   }
   const est = state.estimate;

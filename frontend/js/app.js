@@ -326,8 +326,8 @@ function greeting() {
   const s = state.summary;
   const pick = (list) => list[Math.floor(Math.random() * list.length)];
   const opener = pick([
-    "어서오렴~ 오늘은 미래의 시간을 얼마나 빌리러 왔니? 🕶️",
-    "쉿, 여긴 미래의 시간을 몰래 당겨 쓰는 땅굴 암시장이야. 들어와~",
+    "어서오렴~ 오늘은 미래의 시간을 얼마나 외상으로 달아줄까? 🕶️",
+    "쉿, 여긴 미래의 시간을 외상으로 당겨 쓰는 땅굴 구멍가게야. 들어와~",
     "오, 단골 손님 왔네! 외상 장부 한번 같이 볼까?",
   ]);
   if (!s || !s.count) return `${opener}\n아직 장부가 텅 비었네. '오늘 할 일'에 미룬 일부터 맡겨보렴.`;
