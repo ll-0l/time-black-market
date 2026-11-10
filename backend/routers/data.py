@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, status
 
+from backend.core.config import today
 from backend.models.data import DataCreate, DataResponse, DataUpdate
 from backend.services import analytics_service, data_service
 
@@ -33,7 +34,7 @@ def get_data_list(
 
 @router.get("/summary", summary="데이터 요약 (AI 시스템 프롬프트 주입용)")
 def get_data_summary():
-    return analytics_service.build_summary(data_service.get_all_data())
+    return analytics_service.build_summary(data_service.get_all_data(), today())
 
 
 @router.get("/statistics", summary="확장 통계 (요일별/월별/7일 이동평균)")

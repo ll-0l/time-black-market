@@ -9,7 +9,6 @@
 
 import json
 import logging
-import os
 from typing import Any, Optional
 
 from openai import APIError, AuthenticationError, OpenAI, RateLimitError
@@ -17,7 +16,7 @@ from openai import APIError, AuthenticationError, OpenAI, RateLimitError
 from backend.core.config import today
 from backend.core.exceptions import ExternalServiceError
 from backend.models.conversation import Message
-from backend.services import analytics_service, conversation_service, data_service
+from backend.services import analytics_service, conversation_service, data_service, llm, task_service
 from backend.services.tools import TOOL_SCHEMAS, execute_tool
 
 
@@ -25,29 +24,6 @@ logger = logging.getLogger("time_black_market")
 
 HISTORY_LIMIT = 10  # GPT에 보낼 이전 메시지 수 (비용 제한)
 MAX_TOOL_ROUNDS = 3
-
-
-def _model() -> str:
-    return os.getenv("OPENAI_MODEL", "gpt-5-mini")
-
-
-def _max_tokens() -> int:
-    # gpt-5 계열(추론 모델)은 내부 추론 토큰도 이 한도에 포함되므로 넉넉히 둔다.
-    return int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
-
-
-def _reasoning_effort() -> Optional[str]:
-    """추론 모델의 생각 강도(minimal/low/medium/high). 비우면 보내지 않음 (Codyssey 게이트웨이는 미지원)."""
-    return os.getenv("OPENAI_REASONING_EFFORT", "").strip() or None
-
-
-def _client() -> OpenAI:
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not api_key:
-        raise ExternalServiceError("OPENAI_API_KEY가 설정되지 않았습니다.")
-    # OPENAI_BASE_URL: OpenAI 호환 게이트웨이(예: Codyssey 공개 API) 사용 시 지정. 비우면 OpenAI 공식 API.
-    base_url = os.getenv("OPENAI_BASE_URL", "").strip() or None
-    return OpenAI(api_key=api_key, base_url=base_url, timeout=60, max_retries=1)
 
 
 def _fmt(value: Optional[float]) -> str:
@@ -58,7 +34,15 @@ def _fmt(value: Optional[float]) -> str:
     return f"{minutes}분({hours}시간 {rest}분)" if hours else f"{minutes}분"
 
 
-def build_system_prompt(summary: dict[str, Any]) -> str:
+def _tasks_block(open_tasks: Optional[list[dict[str, Any]]]) -> str:
+    if not open_tasks:
+        return "- 남은 업무 없음"
+    lines = [f"  - {t['title']}: 예상 {_fmt(t['estimated_minutes'])}" for t in open_tasks[:15]]
+    total = sum(t["estimated_minutes"] for t in open_tasks)
+    return f"- 남은 업무 {len(open_tasks)}개, 합계 {_fmt(total)} (= 오늘의 시간 부채)\n" + "\n".join(lines)
+
+
+def build_system_prompt(summary: dict[str, Any], open_tasks: Optional[list[dict[str, Any]]] = None) -> str:
     if not summary.get("count"):
         data_block = "- 아직 기록된 데이터가 없습니다. 데이터 관리 화면에서 기록을 추가하도록 안내하세요."
     else:
@@ -74,7 +58,7 @@ def build_system_prompt(summary: dict[str, Any]) -> str:
 - 주요 지표: 현재 부채 {_fmt(m['current'])} ({m['current_date']}), 평균 {_fmt(m['average'])}, 중앙값 {_fmt(m['median'])}, 최대 {_fmt(m['max'])} ({m['max_date']}), 최소 {_fmt(m['min'])} ({m['min_date']})
 - 누적 차입 {_fmt(m['total_borrowed'])} ({m['borrow_days']}일) / 누적 상환 {_fmt(m['total_repaid'])} ({m['repay_days']}일)
 - 최근 트렌드: {summary['trend']['description']}
-- 추천 상환일: {rec.get('weekday')}요일 — {rec.get('reason')}
+- 추천 상환일: {rec.get('weekday')}요일 (다음 추천일 {', '.join(rec.get('next_dates') or [])}) — {rec.get('reason')}
 - 완납 예상: {payoff.get('status')} {payoff.get('description', '')}
 - 시간 신용등급: {credit['grade']} ({credit['label']})
 - 최근 7일 기록:
@@ -88,10 +72,13 @@ value는 그날 마감 시점의 총 시간 부채(분)이고, 전날보다 늘�
 [사용자 데이터 요약]
 {data_block}
 
+[현재 남은 업무 (할 일 목록)]
+{_tasks_block(open_tasks)}
+
 위 데이터를 기반으로 맞춤형 답변을 제공하세요.
 - 숫자는 위 요약이나 도구 결과에 있는 값만 사용하고, 없는 수치를 지어내지 마세요.
 - 요약에 없는 특정 날짜/기간의 세부 내용이 필요하면 get_records, 요일/월별 비교가 필요하면 get_statistics,
-  이전 대화를 언급하면 list_conversations/get_conversation 도구를 호출하세요.
+  이전 대화를 언급하면 list_conversations/get_conversation, 완료한 업무의 실제 시간이 필요하면 list_tasks 도구를 호출하세요.
 - 시간은 '2시간 30분'처럼 읽기 쉽게 표현하고, 답변은 한국어로 3~6문장 이내로 간결하게.
 - 필요하면 구체적인 상환 행동(언제, 무엇을, 얼마나)을 1~2개 제안하세요."""
 
@@ -103,17 +90,14 @@ def _history_messages(conversation: Optional[dict[str, Any]]) -> list[dict[str, 
 
 
 def _call_gpt(client: OpenAI, messages: list[dict[str, Any]]):
-    options: dict[str, Any] = {}
-    if _reasoning_effort() and _model().startswith(("gpt-5", "o")):
-        options["reasoning_effort"] = _reasoning_effort()
     try:
         return client.chat.completions.create(
-            model=_model(),
+            model=llm.model(),
             messages=messages,
             tools=TOOL_SCHEMAS,
             tool_choice="auto",
-            max_completion_tokens=_max_tokens(),
-            **options,
+            max_completion_tokens=llm.max_tokens(),
+            **llm.reasoning_options(),
         )
     except RateLimitError as exc:
         logger.warning("OpenAI rate limit: %s", exc)
@@ -127,13 +111,13 @@ def _call_gpt(client: OpenAI, messages: list[dict[str, Any]]):
 
 
 def chat(message: str, conversation_id: Optional[str] = None) -> dict[str, Any]:
-    client = _client()
+    client = llm.client()
     conversation = conversation_service.get_conversation(conversation_id) if conversation_id else None
 
     # 1~2. 요약 조회 → 시스템 프롬프트 주입
-    summary = analytics_service.build_summary(data_service.get_all_data())
+    summary = analytics_service.build_summary(data_service.get_all_data(), today())
     messages: list[dict[str, Any]] = [
-        {"role": "system", "content": build_system_prompt(summary)},
+        {"role": "system", "content": build_system_prompt(summary, task_service.list_tasks("open"))},
         *_history_messages(conversation),
         {"role": "user", "content": message},
     ]
@@ -179,5 +163,5 @@ def chat(message: str, conversation_id: Optional[str] = None) -> dict[str, Any]:
         "reply": reply,
         "tool_calls": tool_calls_log,
         "summary": summary,
-        "model": _model(),
+        "model": llm.model(),
     }

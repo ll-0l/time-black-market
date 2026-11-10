@@ -97,7 +97,14 @@ def weekday_stats(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
-def _recommendation(weekdays: list[dict[str, Any]]) -> dict[str, Any]:
+def _next_dates(weekday_ko: str, reference: dt.date, count: int = 3) -> list[str]:
+    """reference(오늘)부터 해당 요일이 돌아오는 날짜 count개."""
+    target = WEEKDAYS_KO.index(weekday_ko)
+    first = reference + dt.timedelta(days=(target - reference.weekday()) % 7)
+    return [(first + dt.timedelta(weeks=i)).isoformat() for i in range(count)]
+
+
+def _recommendation(weekdays: list[dict[str, Any]], reference: Optional[dt.date] = None) -> dict[str, Any]:
     """추천 상환일: 평균 변화량이 가장 낮은(=평소 부채가 가장 많이 줄어드는) 요일.
 
     '평균 부채가 가장 낮은 요일'은 부채 '수준'이라 전날의 영향을 크게 받는다.
@@ -109,8 +116,11 @@ def _recommendation(weekdays: list[dict[str, Any]]) -> dict[str, Any]:
 
     best = min(candidates, key=lambda w: w["average_change"])
     worst = max(candidates, key=lambda w: w["average_change"])
+    next_dates = _next_dates(best["weekday"], reference or dt.date.today())
     return {
         "weekday": best["weekday"],
+        "next_date": next_dates[0],
+        "next_dates": next_dates,
         "average_change": best["average_change"],
         "avoid_weekday": worst["weekday"],
         "avoid_average_change": worst["average_change"],
@@ -167,7 +177,7 @@ def _credit_grade(current: float, average: float) -> dict[str, str]:
     return {"grade": grade, "label": label, "ratio_to_average": round(ratio, 2)}
 
 
-def build_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+def build_summary(records: list[dict[str, Any]], reference: Optional[dt.date] = None) -> dict[str, Any]:
     """프롬프트 주입용 요약."""
     if not records:
         return {
@@ -216,7 +226,7 @@ def build_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
             "repay_days": sum(1 for c in changes if c < 0),
         },
         "trend": _trend(rows),
-        "recommendation": _recommendation(weekday_stats(rows)),
+        "recommendation": _recommendation(weekday_stats(rows), reference),
         "payoff_forecast": _payoff_forecast(rows),
         "credit": _credit_grade(current["value"], average),
         "recent_records": [

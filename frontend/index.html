@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Time Black Market</title>
   <meta name="description" content="미뤄둔 업무 시간을 '시간 부채'로 기록하고 AI가 상환 계획을 분석해주는 개인 비서" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏳</text></svg>" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script>
-    // 저장된 테마를 렌더 전에 적용해 깜빡임 방지
     try { const t = localStorage.getItem("tbm-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
 </head>
@@ -19,61 +18,121 @@
   <div id="server-banner" class="banner" hidden role="status" aria-live="polite"></div>
 
   <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">⏳</span>
-      <div>
-        <h1>Time Black Market</h1>
-        <p class="brand-sub">오늘 편했던 만큼, 미래의 나는 바빠진다.</p>
-      </div>
-    </div>
+    <a class="brand" href="#today" aria-label="Time Black Market 홈">
+      <img class="logo" src="assets/logo.svg" alt="" width="40" height="40" />
+      <span class="wordmark">
+        <span class="wordmark-main">TIME BLACK MARKET</span>
+        <span class="wordmark-sub">시간 암시장 · 오늘 편했던 만큼, 미래의 나는 바빠진다</span>
+      </span>
+    </a>
     <div class="topbar-actions">
-      <span id="server-status" class="pill pill-muted" title="API 서버 상태">서버 확인 중…</span>
+      <span id="server-status" class="status-dot" title="서버 확인 중"><i></i><span class="sr">서버 확인 중</span></span>
       <button id="theme-toggle" class="icon-btn" type="button" aria-label="다크 모드 전환" title="다크 모드 전환">
         <span class="theme-icon" aria-hidden="true"></span>
       </button>
     </div>
   </header>
 
-  <!-- 데이터 요약 (프롬프트에 주입되는 값과 동일) -->
-  <section class="summary" aria-label="데이터 요약">
-    <div class="summary-head">
-      <h2>현재 장부 요약</h2>
-      <span id="summary-period" class="muted small"></span>
+  <!-- 데이터 요약: AI 시스템 프롬프트에 주입되는 값과 동일 -->
+  <section class="overview" aria-label="데이터 요약">
+    <div class="ledger-card" id="ledger-card">
+      <div class="skeleton-line w40"></div><div class="skeleton-line w60 tall"></div><div class="skeleton-line w80"></div>
     </div>
-    <div class="cards" id="summary-cards">
-      <div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div>
-      <div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div>
+    <div class="repay-card" id="repay-card">
+      <div class="skeleton-line w40"></div><div class="skeleton-line w60 tall"></div><div class="skeleton-line w80"></div>
     </div>
   </section>
 
   <nav class="tabs" role="tablist" aria-label="화면 전환">
-    <button class="tab" role="tab" id="tab-chat" aria-controls="panel-chat" aria-selected="true">💬 AI 상담</button>
-    <button class="tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false">📒 장부 관리</button>
-    <button class="tab" role="tab" id="tab-insight" aria-controls="panel-insight" aria-selected="false">📈 인사이트</button>
+    <button class="tab" role="tab" id="tab-today" aria-controls="panel-today" aria-selected="true">오늘 할 일</button>
+    <button class="tab" role="tab" id="tab-calendar" aria-controls="panel-calendar" aria-selected="false">캘린더</button>
+    <button class="tab" role="tab" id="tab-chat" aria-controls="panel-chat" aria-selected="false">AI 상담</button>
+    <button class="tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false">장부</button>
+    <button class="tab" role="tab" id="tab-insight" aria-controls="panel-insight" aria-selected="false">인사이트</button>
   </nav>
 
   <main>
+    <!-- ============ 오늘 할 일 ============ -->
+    <section id="panel-today" class="panel" role="tabpanel" aria-labelledby="tab-today">
+      <div class="today-layout">
+        <div class="box tasks-box">
+          <form id="task-form" class="task-form" autocomplete="off">
+            <label for="task-title" class="sr">해야 할 일</label>
+            <input id="task-title" maxlength="100" placeholder="미룰 것 같은 일을 적어보세요 (예: 주간 보고서 작성)" required />
+            <button id="task-estimate" class="btn btn-primary" type="submit">AI 예상 시간</button>
+          </form>
+          <div id="estimate-box" class="estimate-box" hidden aria-live="polite"></div>
+
+          <div class="tasks-head">
+            <h3>남은 일 <span id="open-count" class="muted small"></span></h3>
+            <span class="muted small">끝낸 일은 체크하고 실제 걸린 시간을 적어주세요</span>
+          </div>
+          <ul id="open-tasks" class="task-list"></ul>
+
+          <details class="done-section" id="done-section">
+            <summary>오늘 끝낸 일 <span id="done-count" class="muted small"></span></summary>
+            <ul id="done-tasks" class="task-list done"></ul>
+          </details>
+        </div>
+
+        <aside class="today-side">
+          <div class="box debt-box">
+            <p class="eyebrow">오늘 쌓인 시간 부채</p>
+            <p class="big" id="today-debt">-</p>
+            <p class="muted small" id="today-debt-sub">남은 일의 예상 시간을 더한 값이에요</p>
+            <div class="debt-bar" id="debt-bar" aria-hidden="true"></div>
+            <p class="note small">✓ 장부에 자동 기록 · 캘린더와 AI 상담에 바로 반영돼요</p>
+          </div>
+          <div class="box accuracy-box" id="accuracy-box"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ 캘린더 ============ -->
+    <section id="panel-calendar" class="panel" role="tabpanel" aria-labelledby="tab-calendar" hidden>
+      <div class="calendar-layout">
+        <div class="box">
+          <div class="cal-head">
+            <button class="icon-btn" id="cal-prev" type="button" aria-label="이전 달">‹</button>
+            <h3 id="cal-title">-</h3>
+            <button class="icon-btn" id="cal-next" type="button" aria-label="다음 달">›</button>
+            <button class="btn btn-ghost btn-small" id="cal-today" type="button">오늘</button>
+            <p id="cal-month-stats" class="cal-month-stats"></p>
+          </div>
+          <div class="cal-grid cal-weekdays" aria-hidden="true">
+            <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+          </div>
+          <div class="cal-grid" id="cal-grid" role="grid" aria-label="시간 부채 달력"></div>
+          <div class="cal-legend">
+            <span><i class="key key-up"></i>부채 생김</span>
+            <span><i class="key key-down"></i>부채 줄어듦</span>
+            <span><i class="key key-repay"></i>상환 추천일</span>
+            <span class="muted">색이 진할수록 변화가 커요</span>
+          </div>
+        </div>
+        <aside class="box day-detail" id="day-detail" aria-live="polite"></aside>
+      </div>
+    </section>
+
     <!-- ============ 채팅 ============ -->
-    <section id="panel-chat" class="panel chat-layout" role="tabpanel" aria-labelledby="tab-chat">
-      <aside class="history" aria-label="대화 기록">
+    <section id="panel-chat" class="panel chat-layout" role="tabpanel" aria-labelledby="tab-chat" hidden>
+      <aside class="box history" aria-label="대화 기록">
         <div class="history-head">
           <h3>대화 기록</h3>
           <button id="new-chat" class="btn btn-small" type="button">+ 새 대화</button>
         </div>
         <ul id="conversation-list" class="conversation-list"></ul>
       </aside>
-
-      <div class="chat">
+      <div class="box chat">
         <div class="chat-head">
           <h3 id="chat-title">새 대화</h3>
-          <span class="muted small">답변은 위 요약 데이터를 기반으로 생성돼요</span>
+          <span class="muted small">위 장부 요약을 근거로 답해요</span>
         </div>
         <div id="messages" class="messages" aria-live="polite"></div>
         <div class="quick" id="quick-questions">
           <button type="button" class="chip">요즘 내 시간 부채 상황 어때?</button>
-          <button type="button" class="chip">추천 상환일은 언제야?</button>
-          <button type="button" class="chip">가장 부채가 많았던 때는 언제고 왜 그랬어?</button>
-          <button type="button" class="chip">이번 주 상환 계획 세워줘</button>
+          <button type="button" class="chip">다음 상환 추천일에 뭘 하면 좋을까?</button>
+          <button type="button" class="chip">남은 일 중 뭐부터 하면 좋을까?</button>
         </div>
         <form id="chat-form" class="chat-form">
           <textarea id="chat-input" rows="1" maxlength="1000" placeholder="시간 부채에 대해 물어보세요" title="Enter 전송 · Shift+Enter 줄바꿈" required></textarea>
@@ -82,12 +141,12 @@
       </div>
     </section>
 
-    <!-- ============ 데이터 관리 ============ -->
+    <!-- ============ 장부 ============ -->
     <section id="panel-data" class="panel" role="tabpanel" aria-labelledby="tab-data" hidden>
       <div class="data-layout">
-        <form id="data-form" class="data-form" novalidate>
-          <h3 id="data-form-title">새 기록 추가</h3>
-          <p class="muted small">하루에 1건 · 그날 마감 시점에 남아 있는 <b>총 시간 부채(분)</b></p>
+        <form id="data-form" class="box data-form" novalidate>
+          <h3 id="data-form-title">새 기록</h3>
+          <p class="muted small">하루 1건 · 보통은 '오늘 할 일'에서 자동 기록돼요. 지난 날짜를 직접 고칠 때 사용하세요.</p>
           <label>날짜
             <input type="date" id="f-date" required />
           </label>
@@ -105,18 +164,23 @@
           </div>
         </form>
 
-        <div class="data-list">
+        <div class="box data-list">
           <div class="data-list-head">
-            <h3>기록 목록 <span id="data-count" class="muted small"></span></h3>
+            <div class="segmented" role="tablist" aria-label="기록 종류" id="kind-tabs">
+              <button type="button" role="tab" data-kind="all" class="active" aria-selected="true">전체 <span class="count" data-count="all"></span></button>
+              <button type="button" role="tab" data-kind="up" aria-selected="false">부채 생긴 날 <span class="count" data-count="up"></span></button>
+              <button type="button" role="tab" data-kind="down" aria-selected="false">부채 줄어든 날 <span class="count" data-count="down"></span></button>
+            </div>
             <div class="row">
               <select id="data-month" aria-label="월 필터"></select>
-              <button id="export-csv" class="btn btn-small" type="button">CSV 내보내기</button>
-              <button id="export-json" class="btn btn-small" type="button">JSON 내보내기</button>
+              <button id="export-csv" class="btn btn-small" type="button">CSV</button>
+              <button id="export-json" class="btn btn-small" type="button">JSON</button>
             </div>
           </div>
+          <p id="kind-summary" class="kind-summary"></p>
           <div class="table-wrap">
             <table class="table">
-              <thead><tr><th>날짜</th><th class="num">부채</th><th class="num">전일 대비</th><th>메모</th><th class="actions-col">작업</th></tr></thead>
+              <thead><tr><th>날짜</th><th class="num">부채</th><th class="num">변화</th><th>메모</th><th class="actions-col"><span class="sr">작업</span></th></tr></thead>
               <tbody id="data-tbody"></tbody>
             </table>
           </div>
@@ -126,13 +190,13 @@
 
     <!-- ============ 인사이트 ============ -->
     <section id="panel-insight" class="panel" role="tabpanel" aria-labelledby="tab-insight" hidden>
-      <div class="viz-card">
+      <div class="box viz">
         <div class="viz-head">
           <div>
             <h3>시간 부채 추이</h3>
-            <p class="muted small">일별 마감 부채와 7일 이동평균 (분)</p>
+            <p class="muted small">일별 마감 부채와 7일 이동평균</p>
           </div>
-          <div class="segmented" role="group" aria-label="기간">
+          <div class="segmented" role="group" aria-label="기간" id="range-tabs">
             <button type="button" data-range="30">30일</button>
             <button type="button" data-range="90" class="active">90일</button>
             <button type="button" data-range="all">전체</button>
@@ -141,23 +205,17 @@
         <div class="legend" id="line-legend"></div>
         <div id="line-chart" class="chart"></div>
       </div>
-
       <div class="insight-grid">
-        <div class="viz-card">
-          <h3>요일별 평균 증감</h3>
-          <p class="muted small">막대가 아래(파랑)면 그 요일에 평균적으로 부채를 갚고, 위(빨강)면 새로 빌려요</p>
-          <div class="legend">
-            <span class="legend-item"><i class="swatch" style="background:var(--diverge-neg)"></i>상환(감소)</span>
-            <span class="legend-item"><i class="swatch" style="background:var(--diverge-pos)"></i>차입(증가)</span>
-          </div>
+        <div class="box viz">
+          <h3>요일별 평균 변화</h3>
+          <p class="muted small">아래(파랑)는 부채가 줄어든 요일, 위(빨강)는 늘어난 요일</p>
           <div id="weekday-chart" class="chart"></div>
         </div>
-        <div class="viz-card">
+        <div class="box viz">
           <h3>월별 통계</h3>
-          <p class="muted small">표준편차 <span id="stat-stdev">-</span>분</p>
           <div class="table-wrap">
             <table class="table">
-              <thead><tr><th>월</th><th class="num">기록</th><th class="num">평균</th><th class="num">최대</th><th class="num">최소</th><th class="num">순증감</th></tr></thead>
+              <thead><tr><th>월</th><th class="num">평균</th><th class="num">최대</th><th class="num">순변화</th></tr></thead>
               <tbody id="monthly-tbody"></tbody>
             </table>
           </div>
@@ -166,9 +224,9 @@
     </section>
   </main>
 
-  <footer class="footer muted small">
-    <span>Time Black Market · FastAPI + Firestore + GPT</span>
-    <a id="docs-link" href="#" target="_blank" rel="noopener">API 문서 (Swagger)</a>
+  <footer class="footer">
+    <span class="muted small">© Time Black Market · FastAPI · Firestore · GPT</span>
+    <a id="docs-link" class="small" href="#" target="_blank" rel="noopener">API 문서</a>
   </footer>
 
   <div id="tooltip" class="tooltip" hidden></div>

@@ -9,8 +9,9 @@ import datetime as dt
 import json
 from typing import Any, Callable
 
+from backend.core.config import today
 from backend.core.exceptions import AppError
-from backend.services import analytics_service, conversation_service, data_service
+from backend.services import analytics_service, conversation_service, data_service, task_service
 
 
 MAX_RECORDS = 62
@@ -18,7 +19,7 @@ MAX_CONVERSATION_MESSAGES = 20
 
 
 def _get_data_summary() -> dict[str, Any]:
-    return analytics_service.build_summary(data_service.get_all_data())
+    return analytics_service.build_summary(data_service.get_all_data(), today())
 
 
 def _get_statistics(section: str = "all") -> dict[str, Any]:
@@ -73,12 +74,25 @@ def _get_conversation(conversation_id: str) -> dict[str, Any]:
     }
 
 
+def _list_tasks(status: str = "open") -> dict[str, Any]:
+    tasks = task_service.list_tasks(status if status in ("open", "done") else "open", 20)
+    return {
+        "status": status,
+        "count": len(tasks),
+        "total_estimated_minutes": sum(t["estimated_minutes"] for t in tasks),
+        "tasks": [
+            {k: t[k] for k in ("title", "estimated_minutes", "created_date", "done_date", "actual_minutes")} for t in tasks
+        ],
+    }
+
+
 TOOL_FUNCTIONS: dict[str, Callable[..., dict[str, Any]]] = {
     "get_data_summary": _get_data_summary,
     "get_statistics": _get_statistics,
     "get_records": _get_records,
     "list_conversations": _list_conversations,
     "get_conversation": _get_conversation,
+    "list_tasks": _list_tasks,
 }
 
 TOOL_DESCRIPTIONS: dict[str, str] = {
@@ -87,6 +101,7 @@ TOOL_DESCRIPTIONS: dict[str, str] = {
     "get_records": "특정 기간의 일별 원본 기록(date, value=그날 마감 시점 총 시간 부채(분), memo=미룬/처리한 업무)을 조회한다. 특정 날짜·주·월에 무슨 일이 있었는지, 왜 늘었는지 등 세부 질문에 사용. 최대 62일.",
     "list_conversations": "저장된 이전 대화 목록(제목, 최근 수정 시각)을 조회한다. 사용자가 '전에 물어본 것', '지난 대화'를 언급할 때 사용.",
     "get_conversation": "특정 이전 대화의 메시지를 조회한다. list_conversations로 id를 먼저 확인한 뒤 사용.",
+    "list_tasks": "현재 남은 업무(open, 오늘 부채의 구성) 또는 최근 완료 업무(done, 예상 vs 실제 시간)를 조회한다. '뭐부터 할까', '예상보다 오래 걸린 일' 같은 질문에 사용.",
 }
 
 TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
@@ -118,6 +133,12 @@ TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
         "type": "object",
         "properties": {"conversation_id": {"type": "string", "description": "대화 id"}},
         "required": ["conversation_id"],
+        "additionalProperties": False,
+    },
+    "list_tasks": {
+        "type": "object",
+        "properties": {"status": {"type": "string", "enum": ["open", "done"], "description": "open=남은 일, done=완료한 일"}},
+        "required": ["status"],
         "additionalProperties": False,
     },
 }

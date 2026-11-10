@@ -58,6 +58,14 @@ export const api = {
   listConversations: () => request("/api/conversations"),
   getConversation: (id) => request(`/api/conversations/${encodeURIComponent(id)}`),
   deleteConversation: (id) => request(`/api/conversations/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  listTasks: (status = "open", limit = 30) => request(`/api/tasks?status=${status}&limit=${limit}`),
+  estimateTask: (title) => request("/api/tasks/estimate", { method: "POST", body: { title }, timeout: 60000 }),
+  createTask: (body) => request("/api/tasks", { method: "POST", body }),
+  updateTask: (id, body) => request(`/api/tasks/${encodeURIComponent(id)}`, { method: "PUT", body }),
+  completeTask: (id, actualMinutes) =>
+    request(`/api/tasks/${encodeURIComponent(id)}/complete`, { method: "POST", body: { actual_minutes: actualMinutes } }),
+  reopenTask: (id) => request(`/api/tasks/${encodeURIComponent(id)}/reopen`, { method: "POST" }),
+  deleteTask: (id) => request(`/api/tasks/${encodeURIComponent(id)}`, { method: "DELETE" }),
   chat: (message, conversationId) =>
     request("/api/chat", { method: "POST", body: { message, conversation_id: conversationId || null }, timeout: 90000 }),
 };

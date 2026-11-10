@@ -6,9 +6,10 @@ from backend.core.exceptions import register_exception_handlers
 from backend.routers.chat import router as chat_router
 from backend.routers.conversations import router as conversations_router
 from backend.routers.data import router as data_router
+from backend.routers.tasks import router as tasks_router
 
 
-APP_VERSION = "0.4.0"
+APP_VERSION = "0.5.0"
 
 app = FastAPI(
     title="Time Black Market API",
@@ -32,6 +33,7 @@ register_exception_handlers(app)
 
 app.include_router(data_router)
 app.include_router(conversations_router)
+app.include_router(tasks_router)
 app.include_router(chat_router)
 
 

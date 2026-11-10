@@ -1,15 +1,21 @@
 import { api, API_BASE_URL } from "./api.js";
 import { fmtMinutes, renderLineChart, renderWeekdayChart } from "./charts.js";
+import { initTasks, loadTasks } from "./tasks.js";
 
 const $ = (sel) => document.querySelector(sel);
+const WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
+
 const state = {
   summary: null,
   statistics: null,
-  data: [],
+  data: [],             // 날짜 오름차순 + change 계산된 기록
   conversations: [],
   conversationId: null,
   editingId: null,
+  kind: "all",          // 장부 필터: all | up | down
   range: "90",
+  calMonth: null,       // "YYYY-MM"
+  selectedDate: null,
   sending: false,
   insightDirty: true,
 };
@@ -18,10 +24,9 @@ const state = {
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
-// AI 답변의 **굵게** 정도만 허용하는 아주 작은 마크다운 렌더러
-function renderRichText(text) {
-  return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
-}
+const renderRichText = (text) => escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+const signed = (min) => (min === null || min === undefined ? "-" : `${min > 0 ? "+" : ""}${fmtMinutes(min)}`);
+
 function toast(message) {
   const t = $("#toast");
   t.textContent = message;
@@ -29,9 +34,17 @@ function toast(message) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => (t.hidden = true), 2600);
 }
-function todayISO() {
-  const d = new Date();
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+function isoOf(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+const todayISO = () => isoOf(new Date());
+function weekdayOf(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return WEEKDAYS[(new Date(y, m - 1, d).getDay() + 6) % 7];
+}
+function prettyDate(iso, withYear = false) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${withYear ? `${y}년 ` : ""}${m}월 ${d}일 (${weekdayOf(iso)})`;
 }
 function relativeTime(iso) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -41,10 +54,7 @@ function relativeTime(iso) {
   if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}일 전`;
   return iso.slice(0, 10);
 }
-function signed(min) {
-  if (min === null || min === undefined) return "-";
-  return `${min > 0 ? "+" : ""}${fmtMinutes(min)}`;
-}
+const kindOf = (r) => (r.change === null ? "first" : r.change > 0 ? "up" : r.change < 0 ? "down" : "flat");
 
 /* ================= 테마 ================= */
 function initTheme() {
@@ -53,31 +63,28 @@ function initTheme() {
     const current = root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const next = current === "dark" ? "light" : "dark";
     root.dataset.theme = next;
-    try { localStorage.setItem("tbm-theme", next); } catch (e) { /* 저장 불가 환경 무시 */ }
+    try { localStorage.setItem("tbm-theme", next); } catch (e) { /* noop */ }
     if (!$("#panel-insight").hidden) renderInsightCharts();
   });
 }
 
 /* ================= 탭 ================= */
+function selectTab(id) {
+  document.querySelectorAll(".tab").forEach((t) => {
+    const on = t.id === id;
+    t.setAttribute("aria-selected", String(on));
+    $(`#${t.getAttribute("aria-controls")}`).hidden = !on;
+  });
+  if (id === "tab-insight") loadInsight();
+  try { localStorage.setItem("tbm-tab", id); } catch (e) { /* noop */ }
+}
 function initTabs() {
-  const tabs = [...document.querySelectorAll(".tab")];
-  const select = (tab) => {
-    tabs.forEach((t) => {
-      const on = t === tab;
-      t.setAttribute("aria-selected", String(on));
-      $(`#${t.getAttribute("aria-controls")}`).hidden = !on;
-    });
-    if (tab.id === "tab-insight") loadInsight();
-    try { localStorage.setItem("tbm-tab", tab.id); } catch (e) { /* noop */ }
-  };
-  tabs.forEach((t) => t.addEventListener("click", () => select(t)));
-  // 우선순위: URL 해시(#chat/#data/#insight) → 마지막으로 본 탭
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => selectTab(t.id)));
   let saved = location.hash ? `tab-${location.hash.slice(1)}` : null;
   if (!saved) {
     try { saved = localStorage.getItem("tbm-tab"); } catch (e) { /* noop */ }
   }
-  const initial = tabs.find((t) => t.id === saved);
-  if (initial) select(initial);
+  if (saved && $(`#${saved}`)) selectTab(saved);
 }
 
 /* ================= 서버 깨우기 (Render 무료 티어 콜드스타트) ================= */
@@ -87,7 +94,7 @@ async function wakeServer() {
   const started = Date.now();
   const tick = () => {
     const sec = Math.round((Date.now() - started) / 1000);
-    banner.textContent = `☕ 서버를 깨우는 중이에요 (${sec}초). 무료 서버는 한동안 접속이 없으면 잠들어서 첫 접속에 최대 1분 정도 걸릴 수 있어요.`;
+    banner.textContent = `☕ 서버를 깨우는 중이에요 (${sec}초). 무료 서버는 한동안 접속이 없으면 잠들어서 첫 접속에 최대 1분 정도 걸려요.`;
   };
   const showTimer = setTimeout(() => { banner.hidden = false; tick(); }, 2500);
   const ticker = setInterval(tick, 1000);
@@ -95,114 +102,205 @@ async function wakeServer() {
     while (Date.now() - started < 100000) {
       try {
         await api.health(15000);
-        status.textContent = "서버 연결됨";
-        status.className = "pill pill-ok";
+        status.className = "status-dot ok";
+        status.title = "서버 연결됨";
+        banner.hidden = true;
         return true;
       } catch (e) {
         await new Promise((r) => setTimeout(r, 2000));
       }
     }
-    status.textContent = "서버 연결 실패";
-    status.className = "pill pill-bad";
+    status.className = "status-dot bad";
+    status.title = "서버 연결 실패";
     banner.hidden = false;
     banner.textContent = "⚠️ 서버에 연결하지 못했어요. 잠시 후 새로고침해 주세요.";
     return false;
   } finally {
     clearTimeout(showTimer);
     clearInterval(ticker);
-    if (status.classList.contains("pill-ok")) banner.hidden = true;
   }
 }
 
-/* ================= 요약 카드 ================= */
+/* ================= 요약 (장부 카드 + 상환 추천일 카드) ================= */
 async function loadSummary() {
   try {
     state.summary = await api.summary();
-    renderSummary();
+    renderOverview();
   } catch (e) {
-    $("#summary-cards").innerHTML = `<div class="card"><div class="label">요약</div><div class="sub">${escapeHtml(e.message)}</div></div>`;
+    $("#ledger-card").innerHTML = `<p class="eyebrow">현재 시간 부채</p><p class="ledger-meta">${escapeHtml(e.message)}</p>`;
   }
 }
 
-function renderSummary() {
+function renderOverview() {
   const s = state.summary;
-  const box = $("#summary-cards");
   if (!s || !s.count) {
-    $("#summary-period").textContent = "";
-    box.innerHTML = '<div class="card"><div class="label">데이터 없음</div><div class="sub">장부 관리 탭에서 첫 기록을 추가해 보세요.</div></div>';
+    $("#ledger-card").innerHTML = '<p class="eyebrow">현재 시간 부채</p><p class="big">0<small>분</small></p><p class="ledger-meta">장부 탭에서 첫 기록을 추가해 보세요.</p>';
+    $("#repay-card").innerHTML = '<p class="eyebrow">상환 추천일</p><p class="reason">기록이 쌓이면 추천해 드려요.</p>';
     return;
   }
   const m = s.metrics;
   const t = s.trend;
-  const rec = s.recommendation || {};
-  const pay = s.payoff_forecast || {};
   const credit = s.credit || {};
-  $("#summary-period").textContent = `${s.period.label} · ${s.count}건`;
+  const pay = s.payoff_forecast || {};
+  const trendCls = t.label === "증가" ? "up" : t.label === "감소" ? "down" : "";
+  const arrow = t.label === "증가" ? "▲" : t.label === "감소" ? "▼" : "–";
 
-  const trendClass = t.label === "증가" ? "trend-up" : t.label === "감소" ? "trend-down" : "";
-  const arrow = t.label === "증가" ? "▲" : t.label === "감소" ? "▼" : "■";
-  const payValue = pay.estimated_date
-    ? `${pay.estimated_date.slice(5).replace("-", "/")}<small>${pay.days_left}일 후</small>`
-    : `<span style="font-size:18px">${escapeHtml(pay.status || "-")}</span>`;
+  $("#ledger-card").innerHTML = `
+    <p class="eyebrow">현재 시간 부채 · ${m.current_date.slice(5).replace("-", "/")} 마감</p>
+    <p class="big">${fmtMinutes(m.current)}</p>
+    <div class="chips">
+      <span class="chip-stat ${trendCls}">${arrow} 7일 추세 <b>${t.change_pct > 0 ? "+" : ""}${t.change_pct}%</b></span>
+      <span class="chip-stat">신용등급 <b>${escapeHtml(credit.grade || "-")}</b> · ${escapeHtml((credit.label || "").split(" — ")[0])}</span>
+      <span class="chip-stat">${pay.estimated_date ? `완납 예상 <b>${pay.estimated_date.slice(5).replace("-", "/")}</b>` : escapeHtml(pay.status || "")}</span>
+    </div>
+    <p class="ledger-meta">${s.period.start} ~ ${s.period.end} · ${s.count}건 · 평균 ${fmtMinutes(m.average)} · 최대 ${fmtMinutes(m.max)} (${m.max_date})</p>`;
 
+  const rec = s.recommendation || {};
+  if (!rec.next_date) {
+    $("#repay-card").innerHTML = `<p class="eyebrow">상환 추천일</p><p class="reason">${escapeHtml(rec.reason || "데이터가 더 필요해요.")}</p>`;
+    return;
+  }
+  const isToday = rec.next_date === todayISO();
+  $("#repay-card").innerHTML = `
+    <span class="stamp" aria-hidden="true">REPAY<br/>DAY</span>
+    <p class="eyebrow">${isToday ? "오늘이 상환 추천일" : "다음 상환 추천일"}</p>
+    <p class="big">${prettyDate(rec.next_date)}</p>
+    <p class="reason">${escapeHtml(rec.weekday)}요일엔 평균 <b>${fmtMinutes(-rec.average_change)}</b>씩 갚았어요. ${escapeHtml(rec.avoid_weekday)}요일은 새 부채를 조심하세요.</p>
+    <div class="next-list" aria-label="이후 추천일">${(rec.next_dates || []).slice(1).map((d) => `<span>${d.slice(5).replace("-", "/")}</span>`).join("")}</div>`;
+}
+
+/* ================= 캘린더 ================= */
+function shiftMonth(ym, delta) {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function renderCalendar() {
+  if (!state.calMonth) {
+    const last = state.data[state.data.length - 1];
+    state.calMonth = (last ? last.date : todayISO()).slice(0, 7);
+  }
+  const ym = state.calMonth;
+  const [y, m] = ym.split("-").map(Number);
+  $("#cal-title").textContent = `${y}. ${String(m).padStart(2, "0")}`;
+
+  const byDate = Object.fromEntries(state.data.map((r) => [r.date, r]));
+  const recDates = new Set(state.summary?.recommendation?.next_dates || []);
+  const today = todayISO();
+  const monthRows = state.data.filter((r) => r.date.startsWith(ym));
+  const maxAbs = Math.max(30, ...state.data.map((r) => Math.abs(r.change || 0)));
+
+  const first = new Date(y, m - 1, 1);
+  const lead = (first.getDay() + 6) % 7; // 월요일 시작
+  const days = new Date(y, m, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push('<div class="cal-cell empty" aria-hidden="true"></div>');
+  for (let d = 1; d <= days; d++) {
+    const iso = `${ym}-${String(d).padStart(2, "0")}`;
+    const r = byDate[iso];
+    const cls = ["cal-cell"];
+    let style = "";
+    let body = "";
+    if (r) {
+      const k = kindOf(r);
+      if (k === "up" || k === "down") {
+        cls.push(k === "up" ? "is-up" : "is-down");
+        const tint = Math.round(12 + (Math.abs(r.change) / maxAbs) * 48);
+        style = `--tint:${tint}%`;
+      }
+      body = `<span class="cal-value">${fmtMinutes(r.value).replace("시간 ", "h ").replace("시간", "h").replace("분", "m")}</span>
+              <span class="cal-change">${r.change === null ? "" : r.change === 0 ? "±0" : `${r.change > 0 ? "+" : ""}${Math.round(r.change)}`}</span>`;
+    } else {
+      cls.push("no-data");
+    }
+    if (iso > today) cls.push("future");
+    if (iso === today) cls.push("today");
+    if (recDates.has(iso)) cls.push("repay");
+    if (iso === state.selectedDate) cls.push("selected");
+    const label = `${prettyDate(iso)}${r ? ` 부채 ${fmtMinutes(r.value)}` : " 기록 없음"}${recDates.has(iso) ? ", 상환 추천일" : ""}`;
+    cells.push(`<button type="button" class="${cls.join(" ")}" style="${style}" data-date="${iso}" aria-label="${label}">
+        <span class="cal-day">${d}${recDates.has(iso) ? '<span class="cal-tag">상환</span>' : ""}</span>${body}</button>`);
+  }
+  $("#cal-grid").innerHTML = cells.join("");
+
+  const up = monthRows.filter((r) => kindOf(r) === "up");
+  const down = monthRows.filter((r) => kindOf(r) === "down");
+  const net = monthRows.length ? monthRows[monthRows.length - 1].value - (byDate[monthRows[0].date].value - (monthRows[0].change || 0)) : 0;
+  $("#cal-month-stats").innerHTML = monthRows.length
+    ? `부채 생긴 날 <b class="up">${up.length}</b> · 줄어든 날 <b class="down">${down.length}</b> · 이번 달 순변화 <b class="${net > 0 ? "up" : net < 0 ? "down" : ""}">${signed(net)}</b>`
+    : '<span class="muted">이 달에는 기록이 없어요</span>';
+
+  renderDayDetail();
+}
+
+function renderDayDetail() {
+  const box = $("#day-detail");
+  const iso = state.selectedDate || state.data[state.data.length - 1]?.date || todayISO();
+  const r = state.data.find((d) => d.date === iso);
+  const rec = state.summary?.recommendation;
+  const isRepay = (rec?.next_dates || []).includes(iso);
+  const repayNote = isRepay
+    ? `<p class="repay-note">🪙 <b>상환 추천일</b> · ${escapeHtml(rec.weekday)}요일엔 평균 ${fmtMinutes(-rec.average_change)}씩 줄었어요. 미뤄둔 일 하나를 갚아 보세요.</p>`
+    : "";
+
+  if (!r) {
+    const future = iso > todayISO();
+    box.innerHTML = `
+      <p class="eyebrow">${prettyDate(iso, true)}</p>
+      <p class="big muted">${future ? "예정" : "기록 없음"}</p>
+      ${repayNote}
+      ${future ? '<p class="note">미래 날짜는 기록할 수 없어요.</p>' : `<button class="btn btn-primary btn-small" type="button" data-add="${iso}">이 날 기록 추가</button>`}`;
+    return;
+  }
+  const k = kindOf(r);
+  const changeText = k === "first" ? "첫 기록" : k === "flat" ? "변화 없음" : `${k === "up" ? "▲ 부채 생김" : "▼ 부채 줄어듦"} ${signed(r.change)}`;
   box.innerHTML = `
-    <div class="card hero">
-      <div class="label">현재 시간 부채</div>
-      <div class="value">${fmtMinutes(m.current)}</div>
-      <div class="sub">${m.current_date} 마감 기준 · 평균 ${fmtMinutes(m.average)}</div>
-    </div>
-    <div class="card">
-      <div class="label">최근 추세 (7일)</div>
-      <div class="value ${trendClass}">${arrow} ${t.change_pct > 0 ? "+" : ""}${t.change_pct}%</div>
-      <div class="sub">${escapeHtml(t.label)} · 직전 7일 평균 대비</div>
-    </div>
-    <div class="card">
-      <div class="label">시간 신용등급</div>
-      <div class="value"><span class="grade grade-${escapeHtml(credit.grade)}">${escapeHtml(credit.grade || "-")}</span></div>
-      <div class="sub">${escapeHtml((credit.label || "").split(" — ")[0])} · 평균 대비 ${Math.round((credit.ratio_to_average || 0) * 100)}%</div>
-    </div>
-    <div class="card">
-      <div class="label">추천 상환일</div>
-      <div class="value">${escapeHtml(rec.weekday || "-")}<small>요일</small></div>
-      <div class="sub">평균 ${signed(rec.average_change)} · ${escapeHtml(rec.avoid_weekday || "-")}요일 차입 주의</div>
-    </div>
-    <div class="card">
-      <div class="label">완납 예상일</div>
-      <div class="value">${payValue}</div>
-      <div class="sub">${pay.daily_rate !== undefined ? `하루 평균 ${signed(pay.daily_rate)}` : escapeHtml(pay.status || "")}</div>
-    </div>
-    <div class="card">
-      <div class="label">최대 부채</div>
-      <div class="value">${fmtMinutes(m.max)}</div>
-      <div class="sub">${m.max_date} · 최소 ${fmtMinutes(m.min)}</div>
-    </div>`;
+    <p class="eyebrow">${prettyDate(iso, true)}</p>
+    <p class="big">${fmtMinutes(r.value)}</p>
+    <p class="${k === "up" ? "up" : k === "down" ? "down" : "muted"}"><b>${changeText}</b></p>
+    ${repayNote}
+    <p class="memo">${escapeHtml(r.memo || "메모 없음")}</p>
+    <button class="btn btn-small" type="button" data-edit-date="${r.id}">이 기록 수정</button>`;
+}
+
+function initCalendar() {
+  $("#cal-prev").addEventListener("click", () => { state.calMonth = shiftMonth(state.calMonth, -1); renderCalendar(); });
+  $("#cal-next").addEventListener("click", () => { state.calMonth = shiftMonth(state.calMonth, 1); renderCalendar(); });
+  $("#cal-today").addEventListener("click", () => { state.calMonth = todayISO().slice(0, 7); state.selectedDate = todayISO(); renderCalendar(); });
+  $("#cal-grid").addEventListener("click", (evt) => {
+    const cell = evt.target.closest("[data-date]");
+    if (!cell) return;
+    state.selectedDate = cell.dataset.date;
+    renderCalendar();
+  });
+  $("#day-detail").addEventListener("click", (evt) => {
+    const edit = evt.target.closest("[data-edit-date]");
+    const add = evt.target.closest("[data-add]");
+    if (edit) { selectTab("tab-data"); startEdit(edit.dataset.editDate); }
+    if (add) { selectTab("tab-data"); resetForm(); $("#f-date").value = add.dataset.add; $("#f-value").focus(); }
+  });
 }
 
 /* ================= 대화 기록 ================= */
 async function loadConversations() {
-  try {
-    state.conversations = await api.listConversations();
-  } catch (e) {
-    state.conversations = [];
-  }
+  try { state.conversations = await api.listConversations(); } catch (e) { state.conversations = []; }
   renderConversationList();
 }
 
 function renderConversationList() {
   const list = $("#conversation-list");
   if (!state.conversations.length) {
-    list.innerHTML = '<li class="empty">아직 저장된 대화가 없어요.<br />질문하면 자동으로 저장돼요.</li>';
+    list.innerHTML = '<li class="empty">아직 대화가 없어요.<br />질문하면 자동 저장돼요.</li>';
     return;
   }
   list.innerHTML = state.conversations
-    .map(
-      (c) => `
+    .map((c) => `
       <li class="conv-item ${c.id === state.conversationId ? "active" : ""}" data-id="${escapeHtml(c.id)}" tabindex="0" role="button" aria-label="${escapeHtml(c.title)} 불러오기">
         <span class="conv-title">${escapeHtml(c.title)}</span>
         <button class="conv-del" type="button" data-del="${escapeHtml(c.id)}" aria-label="대화 삭제" title="삭제">✕</button>
-        <span class="conv-meta">${relativeTime(c.updated_at)} · 메시지 ${c.message_count}개</span>
-      </li>`,
-    )
+        <span class="conv-meta">${relativeTime(c.updated_at)} · ${c.message_count}개</span>
+      </li>`)
     .join("");
 }
 
@@ -230,8 +328,9 @@ function newChat() {
   $("#quick-questions").hidden = false;
   $("#messages").innerHTML = `
     <div class="welcome">
-      <p><b>시간 암시장 상담 창구</b>에 오신 걸 환영해요.</p>
-      <p class="small">위 요약 카드의 데이터가 AI에게 그대로 전달돼요.<br/>필요하면 AI가 날짜별 기록·요일별 통계·이전 대화를 직접 조회해서 답해요.</p>
+      <img src="assets/logo.svg" alt="" />
+      <p><b>시간 암시장 상담 창구</b></p>
+      <p class="small">위 장부 요약이 AI에게 그대로 전달돼요. 필요하면 AI가 날짜별 기록이나 이전 대화를 직접 찾아보고 답해요.</p>
     </div>`;
   renderConversationList();
 }
@@ -293,21 +392,19 @@ function appendMessage(role, content, tools = [], { error = false } = {}) {
   }
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
-  return div;
 }
 
 function showTyping() {
   const box = $("#messages");
   const div = document.createElement("div");
   div.className = "msg assistant";
-  div.innerHTML = '<span class="typing"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">AI가 장부를 분석하는 중…</span></span>';
+  div.innerHTML = '<span class="typing"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">AI가 장부를 살펴보는 중…</span></span>';
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
   const started = Date.now();
   const timer = setInterval(() => {
     const sec = Math.round((Date.now() - started) / 1000);
-    const text = sec > 20 ? `조금만 더 기다려 주세요… ${sec}초` : `AI가 장부를 분석하는 중… ${sec}초`;
-    div.querySelector(".typing-text").textContent = text;
+    div.querySelector(".typing-text").textContent = sec > 20 ? `조금만 더 기다려 주세요… ${sec}초` : `AI가 장부를 살펴보는 중… ${sec}초`;
   }, 1000);
   return () => { clearInterval(timer); div.remove(); };
 }
@@ -329,7 +426,6 @@ async function sendMessage(text) {
     const isNew = !state.conversationId;
     state.conversationId = res.conversation_id;
     $("#chat-title").textContent = res.title;
-    if (res.summary) { state.summary = res.summary; renderSummary(); }
     await loadConversations();
     if (isNew) toast("대화가 자동 저장됐어요");
   } catch (e) {
@@ -349,10 +445,7 @@ function autoGrow() {
 }
 
 function initChat() {
-  $("#chat-form").addEventListener("submit", (evt) => {
-    evt.preventDefault();
-    sendMessage($("#chat-input").value);
-  });
+  $("#chat-form").addEventListener("submit", (evt) => { evt.preventDefault(); sendMessage($("#chat-input").value); });
   $("#chat-input").addEventListener("keydown", (evt) => {
     if (evt.key === "Enter" && !evt.shiftKey && !evt.isComposing) {
       evt.preventDefault();
@@ -366,19 +459,17 @@ function initChat() {
   });
 }
 
-/* ================= 장부(데이터) 관리 ================= */
+/* ================= 장부 ================= */
 async function loadData() {
   try {
-    state.data = await api.listData();
+    const rows = await api.listData();
+    state.data = rows.map((r, i) => ({ ...r, change: i ? r.value - rows[i - 1].value : null }));
     renderMonthFilter();
     renderDataTable();
+    renderCalendar();
   } catch (e) {
     $("#data-tbody").innerHTML = `<tr><td colspan="5" class="empty">${escapeHtml(e.message)}</td></tr>`;
   }
-}
-
-function withChanges(rows) {
-  return rows.map((r, i) => ({ ...r, change: i ? r.value - rows[i - 1].value : null }));
 }
 
 function renderMonthFilter() {
@@ -389,29 +480,47 @@ function renderMonthFilter() {
   select.value = months.includes(current) ? current : "all";
 }
 
-function renderDataTable(flashId) {
+function filteredRows() {
   const month = $("#data-month").value || "all";
-  const rows = withChanges(state.data)
-    .filter((r) => month === "all" || r.date.startsWith(month))
-    .reverse();
-  $("#data-count").textContent = `${rows.length}건${month === "all" ? "" : ` / 전체 ${state.data.length}건`}`;
+  const inMonth = state.data.filter((r) => month === "all" || r.date.startsWith(month));
+  return { inMonth, rows: state.kind === "all" ? inMonth : inMonth.filter((r) => kindOf(r) === state.kind) };
+}
+
+function renderDataTable(flashId) {
+  const { inMonth, rows } = filteredRows();
+  const up = inMonth.filter((r) => kindOf(r) === "up");
+  const down = inMonth.filter((r) => kindOf(r) === "down");
+  document.querySelector('[data-count="all"]').textContent = inMonth.length;
+  document.querySelector('[data-count="up"]').textContent = up.length;
+  document.querySelector('[data-count="down"]').textContent = down.length;
+
+  const sum = (list) => list.reduce((acc, r) => acc + Math.abs(r.change), 0);
+  const summary = {
+    all: `총 <b>${inMonth.length}</b>일 · 생긴 날 <b class="up">${up.length}</b> · 줄어든 날 <b class="down">${down.length}</b>`,
+    up: `부채가 생긴 <b>${up.length}</b>일 동안 새로 빌린 시간 <b class="up">+${fmtMinutes(sum(up))}</b> · 하루 평균 ${up.length ? fmtMinutes(sum(up) / up.length) : "-"}`,
+    down: `부채가 줄어든 <b>${down.length}</b>일 동안 갚은 시간 <b class="down">${fmtMinutes(sum(down))}</b> · 하루 평균 ${down.length ? fmtMinutes(sum(down) / down.length) : "-"}`,
+  };
+  $("#kind-summary").innerHTML = summary[state.kind];
+
   const tbody = $("#data-tbody");
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">기록이 없어요.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">해당하는 기록이 없어요.</td></tr>';
     return;
   }
   tbody.innerHTML = rows
+    .slice()
+    .reverse()
     .map((r) => {
-      const deltaClass = r.change > 0 ? "delta-up" : r.change < 0 ? "delta-down" : "";
+      const k = kindOf(r);
       return `<tr data-id="${escapeHtml(r.id)}" class="${r.id === flashId ? "flash" : ""}">
-        <td class="mono">${r.date}</td>
+        <td class="mono">${r.date.slice(2).replaceAll("-", ".")} <span class="muted">${weekdayOf(r.date)}</span></td>
         <td class="num">${fmtMinutes(r.value)}</td>
-        <td class="num ${deltaClass}">${r.change === null ? "-" : signed(r.change)}</td>
+        <td class="num ${k === "up" ? "up" : k === "down" ? "down" : "muted"}">${r.change === null ? "-" : signed(r.change)}</td>
         <td class="memo">${escapeHtml(r.memo)}</td>
-        <td class="actions-col"><div class="row">
-          <button class="btn btn-small" type="button" data-edit="${escapeHtml(r.id)}">수정</button>
-          <button class="btn btn-small btn-danger" type="button" data-delete="${escapeHtml(r.id)}">삭제</button>
-        </div></td>
+        <td class="actions-col">
+          <button class="btn-link" type="button" data-edit="${escapeHtml(r.id)}">수정</button>
+          <button class="btn-link danger" type="button" data-delete="${escapeHtml(r.id)}">삭제</button>
+        </td>
       </tr>`;
     })
     .join("");
@@ -427,7 +536,7 @@ function setFormMessage(text, kind = "") {
 function resetForm() {
   state.editingId = null;
   $("#data-form").classList.remove("editing");
-  $("#data-form-title").textContent = "새 기록 추가";
+  $("#data-form-title").textContent = "새 기록";
   $("#data-submit").textContent = "추가";
   $("#data-cancel").hidden = true;
   $("#f-date").value = todayISO();
@@ -441,7 +550,7 @@ function startEdit(id) {
   if (!row) return;
   state.editingId = id;
   $("#data-form").classList.add("editing");
-  $("#data-form-title").textContent = `${row.date} 기록 수정`;
+  $("#data-form-title").textContent = `${prettyDate(row.date)} 수정`;
   $("#data-submit").textContent = "수정 저장";
   $("#data-cancel").hidden = false;
   $("#f-date").value = row.date;
@@ -455,16 +564,16 @@ function startEdit(id) {
 async function afterDataChange(flashId) {
   state.insightDirty = true;
   await Promise.all([loadData(), loadSummary()]);
+  renderCalendar();
   renderDataTable(flashId);
   if (!$("#panel-insight").hidden) loadInsight();
 }
 
-function initDataForm() {
+function initLedger() {
   $("#f-date").max = todayISO();
   resetForm();
   $("#f-value").addEventListener("input", (e) => {
-    const v = Number(e.target.value);
-    $("#f-value-hint").textContent = e.target.value === "" ? "" : `= ${fmtMinutes(v)}`;
+    $("#f-value-hint").textContent = e.target.value === "" ? "" : `= ${fmtMinutes(Number(e.target.value))}`;
   });
   $("#data-cancel").addEventListener("click", () => { resetForm(); setFormMessage(""); });
 
@@ -474,7 +583,7 @@ function initDataForm() {
     const valueRaw = $("#f-value").value;
     const value = Number(valueRaw);
     const memo = $("#f-memo").value.trim();
-    // 클라이언트 1차 검증 (서버 Pydantic이 최종 검증)
+    // 1차 검증 (최종 검증은 서버 Pydantic)
     if (!date) return setFormMessage("날짜를 선택하세요.", "err");
     if (date > todayISO()) return setFormMessage("미래 날짜는 기록할 수 없어요.", "err");
     if (valueRaw === "" || Number.isNaN(value) || value < 0) return setFormMessage("시간 부채는 0 이상의 숫자(분)로 입력하세요.", "err");
@@ -483,17 +592,15 @@ function initDataForm() {
     const submit = $("#data-submit");
     submit.disabled = true;
     try {
-      if (state.editingId) {
-        const updated = await api.updateData(state.editingId, { date, value, memo });
-        resetForm();
-        setFormMessage(`✓ ${updated.date} 기록을 수정했어요.`, "ok");
-        await afterDataChange(updated.id);
-      } else {
-        const created = await api.createData({ date, value, memo });
-        resetForm();
-        setFormMessage(`✓ ${created.date} 기록을 추가했어요.`, "ok");
-        await afterDataChange(created.id);
-      }
+      const saved = state.editingId
+        ? await api.updateData(state.editingId, { date, value, memo })
+        : await api.createData({ date, value, memo });
+      const verb = state.editingId ? "수정" : "추가";
+      resetForm();
+      setFormMessage(`✓ ${prettyDate(saved.date)} 기록을 ${verb}했어요.`, "ok");
+      state.selectedDate = saved.date;
+      state.calMonth = saved.date.slice(0, 7);
+      await afterDataChange(saved.id);
     } catch (e) {
       setFormMessage(e.message, "err");
     } finally {
@@ -505,16 +612,26 @@ function initDataForm() {
     const edit = evt.target.closest("[data-edit]");
     if (edit) return startEdit(edit.dataset.edit);
     const del = evt.target.closest("[data-delete]");
-    if (del) {
-      const row = state.data.find((d) => d.id === del.dataset.delete);
-      if (!confirm(`${row?.date ?? ""} 기록을 삭제할까요?`)) return;
-      try {
-        await api.deleteData(del.dataset.delete);
-        if (state.editingId === del.dataset.delete) resetForm();
-        setFormMessage(`✓ ${row?.date ?? ""} 기록을 삭제했어요.`, "ok");
-        await afterDataChange();
-      } catch (e) { setFormMessage(e.message, "err"); }
-    }
+    if (!del) return;
+    const row = state.data.find((d) => d.id === del.dataset.delete);
+    if (!confirm(`${row ? prettyDate(row.date) : ""} 기록을 삭제할까요?`)) return;
+    try {
+      await api.deleteData(del.dataset.delete);
+      if (state.editingId === del.dataset.delete) resetForm();
+      setFormMessage(`✓ ${row ? prettyDate(row.date) : ""} 기록을 삭제했어요.`, "ok");
+      await afterDataChange();
+    } catch (e) { setFormMessage(e.message, "err"); }
+  });
+
+  $("#kind-tabs").addEventListener("click", (evt) => {
+    const btn = evt.target.closest("[data-kind]");
+    if (!btn) return;
+    state.kind = btn.dataset.kind;
+    document.querySelectorAll("#kind-tabs button").forEach((b) => {
+      b.classList.toggle("active", b === btn);
+      b.setAttribute("aria-selected", String(b === btn));
+    });
+    renderDataTable();
   });
   $("#data-month").addEventListener("change", () => renderDataTable());
   $("#export-csv").addEventListener("click", exportCSV);
@@ -523,34 +640,28 @@ function initDataForm() {
 
 /* ================= 내보내기 ================= */
 function download(filename, content, type) {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([content], { type }));
   const a = Object.assign(document.createElement("a"), { href: url, download: filename });
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function exportRows() {
-  const month = $("#data-month").value || "all";
-  return withChanges(state.data).filter((r) => month === "all" || r.date.startsWith(month));
-}
 function exportCSV() {
-  const rows = exportRows();
+  const { rows } = filteredRows();
   if (!rows.length) return toast("내보낼 기록이 없어요");
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const lines = [["date", "value_minutes", "change_minutes", "memo"].join(",")]
-    .concat(rows.map((r) => [r.date, r.value, r.change ?? "", esc(r.memo)].join(",")));
-  // BOM: 엑셀에서 한글이 깨지지 않도록
-  download(`time-debt-${todayISO()}.csv`, "﻿" + lines.join("\n"), "text/csv;charset=utf-8");
+  const lines = ["date,value_minutes,change_minutes,memo"].concat(rows.map((r) => [r.date, r.value, r.change ?? "", esc(r.memo)].join(",")));
+  download(`time-debt-${todayISO()}.csv`, "﻿" + lines.join("\n"), "text/csv;charset=utf-8"); // BOM: 엑셀 한글
   toast(`CSV ${rows.length}건을 내려받았어요`);
 }
 function exportJSON() {
-  const rows = exportRows();
+  const { rows } = filteredRows();
   if (!rows.length) return toast("내보낼 기록이 없어요");
   const payload = {
     exported_at: new Date().toISOString(),
     unit: "minutes",
+    filter: { month: $("#data-month").value, kind: state.kind },
     summary: state.summary,
     records: rows.map(({ date, value, change, memo }) => ({ date, value, change, memo })),
   };
@@ -577,36 +688,31 @@ function renderInsightCharts() {
   const memoByDate = Object.fromEntries(state.data.map((d) => [d.date, d.memo]));
   const series = st.series.map((p) => ({ ...p, memo: memoByDate[p.date] }));
   const sliced = state.range === "all" ? series : series.slice(-Number(state.range));
-
   $("#line-legend").innerHTML = `
     <span class="legend-item"><i class="swatch" style="background:var(--series-1)"></i>일별 마감 부채</span>
     <span class="legend-item"><i class="swatch" style="background:repeating-linear-gradient(90deg,var(--series-2) 0 6px,transparent 6px 9px)"></i>7일 이동평균</span>`;
   renderLineChart($("#line-chart"), sliced);
   renderWeekdayChart($("#weekday-chart"), st.weekday, state.summary?.recommendation?.weekday);
-
-  $("#stat-stdev").textContent = st.stdev ?? "-";
   $("#monthly-tbody").innerHTML = st.monthly
     .slice()
     .reverse()
     .map((mo) => `<tr>
         <td class="mono">${mo.month}</td>
-        <td class="num">${mo.count}</td>
         <td class="num">${fmtMinutes(mo.average)}</td>
         <td class="num">${fmtMinutes(mo.max)}</td>
-        <td class="num">${fmtMinutes(mo.min)}</td>
-        <td class="num ${mo.net_change > 0 ? "delta-up" : mo.net_change < 0 ? "delta-down" : ""}">${signed(mo.net_change)}</td>
+        <td class="num ${mo.net_change > 0 ? "up" : mo.net_change < 0 ? "down" : ""}">${signed(mo.net_change)}</td>
       </tr>`)
     .join("");
 }
 
 function initInsight() {
-  document.querySelectorAll(".segmented button").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".segmented button").forEach((b) => b.classList.toggle("active", b === btn));
-      state.range = btn.dataset.range;
-      renderInsightCharts();
-    }),
-  );
+  $("#range-tabs").addEventListener("click", (evt) => {
+    const btn = evt.target.closest("[data-range]");
+    if (!btn) return;
+    document.querySelectorAll("#range-tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+    state.range = btn.dataset.range;
+    renderInsightCharts();
+  });
   let resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
@@ -618,16 +724,27 @@ function initInsight() {
 async function main() {
   $("#docs-link").href = `${API_BASE_URL}/docs`;
   initTheme();
+  initCalendar();
   initChat();
   initConversations();
-  initDataForm();
+  initLedger();
   initInsight();
+  initTasks({
+    toast,
+    today: todayISO,
+    // 할 일이 바뀌면 오늘 부채가 자동 재계산되므로 요약·장부·캘린더를 새로고침
+    onDebtChange: async () => {
+      state.insightDirty = true;
+      await Promise.all([loadSummary(), loadData()]);
+      renderCalendar();
+    },
+  });
   newChat();
   initTabs();
 
-  const ok = await wakeServer();
-  if (!ok) return;
-  await Promise.all([loadSummary(), loadConversations(), loadData()]);
+  if (!(await wakeServer())) return;
+  await Promise.all([loadSummary(), loadConversations(), loadData(), loadTasks()]);
+  renderCalendar(); // 요약(추천일) 도착 후 다시 그림
   if (!$("#panel-insight").hidden) loadInsight();
 }
 

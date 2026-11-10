@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Time Black Market">
+  <!-- 암시장 금화: 톱니 테두리 + 모래시계 -->
+  <circle cx="32" cy="32" r="30" fill="#e0a63a"/>
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#15130c" stroke-width="2" stroke-dasharray="3 3.3" opacity=".55"/>
+  <circle cx="32" cy="32" r="23" fill="#15130c"/>
+  <circle cx="32" cy="32" r="23" fill="none" stroke="#e0a63a" stroke-width="1.5" opacity=".6"/>
+  <path d="M22 17h20M22 47h20" stroke="#e0a63a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M24 19h16c0 6-4 9.5-6.2 13C36 35.5 40 39 40 45H24c0-6 4-9.5 6.2-13C28 28.5 24 25 24 19z" fill="none" stroke="#e0a63a" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M27.5 23h9c-.8 2.6-2.6 4.3-4.5 6.2-1.9-1.9-3.7-3.6-4.5-6.2z" fill="#e0a63a"/>
+  <path d="M26.5 44c.7-3 2.9-4.6 5.5-5.6 2.6 1 4.8 2.6 5.5 5.6z" fill="#e0a63a"/>
+  <path d="M32 32v5" stroke="#e0a63a" stroke-width="1.4" stroke-dasharray="1.2 1.6"/>
+</svg>
