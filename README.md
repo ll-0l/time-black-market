@@ -331,6 +331,8 @@ sequenceDiagram
 
 ## 스크린샷
 
+배포된 프런트엔드에 샘플 장부와 예시 대화 응답을 주입해 촬영한 UI 화면입니다. 데이터와 대화는 문서용 예시이며 운영 상담 기록을 포함하지 않습니다.
+
 | 데이터 요약이 보이는 채팅 | 데이터 관리 (CRUD) | 대화 기록 불러오기 |
 |---|---|---|
 | ![채팅](screenshots/chat.png) | ![데이터 관리](screenshots/data.png) | ![대화 기록](screenshots/history.png) |

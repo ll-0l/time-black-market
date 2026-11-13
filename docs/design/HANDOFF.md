@@ -78,7 +78,7 @@
 3. JS 변경은 화면 요소·캐릭터·키보드 탐색·상태 표시 범위다. API 경로와 데이터 처리 계약은 유지했다.
 4. 백엔드, MCP, DB, 인증 정보, CORS, `frontend/config.js`, Vercel/Render 배포 설정은 수정하지 않았다.
 5. 스크린샷의 데이터는 브라우저에서만 주입했다. 장부 기록 생성·완료·삭제, 실제 AI 요청은 보내지 않는다.
-6. 실제 배포와 제출용 화면 촬영은 기존 Vercel/Render 흐름을 이어간다. 완성한 디자인은 기존 GitHub `main`과 Vercel 연동으로 배포한다.
+6. 완성한 디자인은 기존 GitHub `main`과 Vercel 연동으로 배포했다. 공개 문서의 화면은 샘플 장부·대화 응답을 주입한 UI 예시다.
 
 ## 미리보기
 
@@ -93,6 +93,17 @@ python3 -m http.server 4173 --bind 127.0.0.1 --directory frontend
 - 최종 구현 이미지: `docs/design/previews/shop-desktop.png`, `shop-mobile.png`, `shop-dark.png`, `shop-chat.png`, `shop-insight.png`, `design-board.png`.
 
 Sites 스킬의 로컬 구현·미리보기 흐름을 적용했다. 새 호스팅 프로젝트나 배포는 만들지 않았다.
+
+## 운영 배포 확인
+
+- 서비스: https://time-black-market-frontend.vercel.app
+- 디자인 커밋: `b09e108`. 기존 Vercel 연동 배포의 성공 상태를 확인했다.
+- 클로드의 README 커밋 `d687575`도 보존했다.
+- 배포 HTML, `shop-theme.css`, 선택 캐릭터 PNG, 운영 API를 가리키는 `config.js`를 확인했다.
+- 배포된 프런트엔드에서 실제 `/health` 응답과 CORS 연결을 확인했다. 5개 탭·다크 모드·모바일의 UI 검증은 샘플 응답으로 수행했다.
+- 운영 장부·상담 API는 촬영 브라우저에서 모두 차단했다. API 쓰기·새 상담·실제 상담 내보내기는 수행하지 않았다.
+- `screenshots/chat.png`, `data.png`, `history.png`는 화면 안과 README에 샘플 데이터임을 명시한 문서용 예시다.
+- 배포 UI의 샘플 미리보기: `previews/deployed-demo-desktop.png`, `previews/deployed-demo-mobile.png`.
 
 ## 검증 기록
 
