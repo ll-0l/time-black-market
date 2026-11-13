@@ -157,3 +157,43 @@ def sync_today_debt() -> dict[str, Any]:
     else:
         collection.document().set(payload)
     return {"date": date_iso, "value": total, "open_count": len(open_tasks), "memo": memo}
+
+
+def _open_on(day: str, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """그날 마감 시점에 남아 있던 일: 그날까지 추가됐고, 아직 안 끝났거나 그날 이후에 끝난 일."""
+    return [
+        t for t in tasks
+        if t["created_date"] <= day and (t["status"] == "open" or (t["done_date"] or "") > day)
+    ]
+
+
+def carry_forward() -> dict[str, Any]:
+    """앱을 열 때 호출: 마지막 기록 다음 날 ~ 어제까지 빈 날을 할 일 이력으로 채우고, 오늘 기록을 갱신한다.
+
+    할 일을 건드리지 않은 날에도 남은 일은 그대로이므로 외상이 이어져야 한다.
+    """
+    yesterday = today() - dt.timedelta(days=1)
+    previous = data_service.get_all_data(end=yesterday.isoformat())
+    filled: list[str] = []
+    if previous:
+        tasks = _by_status("open") + _by_status("done")
+        last = dt.date.fromisoformat(previous[-1]["date"])
+        collection = get_firestore_client().collection(data_service.COLLECTION_NAME)
+        day = last + dt.timedelta(days=1)
+        while day <= yesterday:
+            iso = day.isoformat()
+            remaining = _open_on(iso, tasks)
+            finished = [t for t in tasks if t.get("done_date") == iso]
+            parts = []
+            if remaining:
+                parts.append("남은 일(이월): " + ", ".join(f"{t['title']}({_fmt(t['estimated_minutes'])})" for t in remaining))
+            if finished:
+                parts.append("완료: " + ", ".join(f"{t['title']}(실제 {_fmt(t['actual_minutes'] or 0)})" for t in finished))
+            memo = (" / ".join(parts) or "남은 일 없음")[:MEMO_LIMIT]
+            if not data_service._find_id_by_date(iso):
+                collection.document().set(
+                    {"date": iso, "value": float(sum(t["estimated_minutes"] for t in remaining)), "memo": memo}
+                )
+                filled.append(iso)
+            day += dt.timedelta(days=1)
+    return {"filled_dates": filled, "today_debt": sync_today_debt()}

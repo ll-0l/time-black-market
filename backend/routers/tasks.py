@@ -28,6 +28,11 @@ def estimate_task(body: EstimateRequest):
     return estimate_service.estimate(body.title)
 
 
+@router.post("/sync", summary="장부 이월: 빈 날을 할 일 이력으로 채우고 오늘 외상 갱신 (앱 시작 시 호출)")
+def sync_ledger():
+    return task_service.carry_forward()
+
+
 @router.get("", response_model=list[TaskResponse], summary="업무 목록 (open: 남은 일, done: 완료한 일)")
 def list_tasks(
     status_filter: Literal["open", "done", "all"] = Query(default="open", alias="status"),

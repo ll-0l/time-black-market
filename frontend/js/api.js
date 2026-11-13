@@ -58,6 +58,7 @@ export const api = {
   listConversations: () => request("/api/conversations"),
   getConversation: (id) => request(`/api/conversations/${encodeURIComponent(id)}`),
   deleteConversation: (id) => request(`/api/conversations/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  syncLedger: () => request("/api/tasks/sync", { method: "POST" }),
   listTasks: (status = "open", limit = 30) => request(`/api/tasks?status=${status}&limit=${limit}`),
   estimateTask: (title) => request("/api/tasks/estimate", { method: "POST", body: { title }, timeout: 60000 }),
   createTask: (body) => request("/api/tasks", { method: "POST", body }),

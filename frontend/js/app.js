@@ -795,6 +795,8 @@ async function main() {
   initTabs();
 
   if (!(await wakeServer())) return;
+  // 며칠 만에 열어도 남은 일만큼 외상이 이어지도록 장부를 오늘까지 이월
+  try { await api.syncLedger(); } catch (e) { /* 이월 실패해도 화면은 그대로 사용 */ }
   await Promise.all([loadSummary(), loadConversations(), loadData(), loadTasks()]);
   renderCalendar(); // 요약(추천일) 도착 후 다시 그림
   if (!state.conversationId && $("#messages .welcome")) newChat(); // 장부 데이터를 반영한 인사
